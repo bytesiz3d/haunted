@@ -49,31 +49,31 @@ MOV DI , 120
                  
 INPUTLOOP: SQUARE SI , DI        
 
-;MOV AH , 1
-;INT 16H
+MOV AH , 1
+INT 16H
 
-;JNZ ISUP
-;JMP INPUTLOOP
+JNZ ISUP
+JMP INPUTLOOP
 
-;ISUP : CMP AH , 48H
-;       JNZ ISDOWN
-;       SUB DI , 50
-;       JMP INPUTLOOP
+ISUP : CMP AH , 48H
+       JNZ ISDOWN
+       SUB DI , 50
+       JMP INPUTLOOP
 
-;ISDOWN : CMP AH , 50H
-;         JNZ ISRIGHT
-;         ADD DI , 50
-;         JMP INPUTLOOP
+ISDOWN : CMP AH , 50H
+         JNZ ISRIGHT
+         ADD DI , 50
+         JMP INPUTLOOP
 
-;ISRIGHT : CMP AH , 4DH
-;          JNZ ISLEFT
-;          ADD SI , 50
-;          JMP INPUTLOOP
+ISRIGHT : CMP AH , 4DH
+          JNZ ISLEFT
+          ADD SI , 50
+          JMP INPUTLOOP
                            
-;ISLEFT : CMP AH , 4BH
-;         JNZ INPUTLOOP
-;         SUB SI , 50
-;         JMP INPUTLOOP
+ISLEFT : CMP AH , 4BH
+         JNZ INPUTLOOP
+         SUB SI , 50
+         JMP INPUTLOOP
 
     
 HLT
