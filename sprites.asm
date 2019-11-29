@@ -137,12 +137,20 @@ Sprite_Ghost1                   DB      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  
                                 DB      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  0,  0,  0,  0
 
 ;;; --------------------------------------------------------------------------------------------------------------------------------------------------------------------
+SPRITE_ID_EMPTY                 EQU     0
+SPRITE_ID_WALL                  EQU     1
+SPRITE_ID_COIN                  EQU     2
+SPRITE_ID_POWERUP               EQU     3
+        
 Sprite_Map_Base                 LABEL   BYTE
-Sprite_BlackSquare              DB      Sprite_SIZE dup(0) ;Sprite number 0
+Sprite_BlackSquare              DB      Sprite_SIZE dup(0)
+Sprite_Wall                     DB      Sprite_SIZE dup(199)
+Sprite_Coin                     DB      Sprite_SIZE dup(43)
+Sprite_Powerup                  DB      Sprite_SIZE dup(107)
+
 Sprite_BlueSquare               DB      Sprite_SIZE dup(1) ;Sprite number 1
 Sprite_RedSquare                DB      Sprite_SIZE dup(4) ;Sprite number 2, etc..
 Sprite_WhiteSquare              DB      Sprite_SIZE dup(15)
 Sprite_GreenSquare              DB      Sprite_SIZE dup(47)
-Sprite_OrangeSquare             DB      Sprite_SIZE dup(43)
 
 

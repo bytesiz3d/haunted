@@ -1,9 +1,16 @@
         ;; in num: Player number
-DrawPlayerM     MACRO   num
+mDrawPlayer     MACRO   num
         mov     AX, Player_Base[num*2]
         mov     SI, offset Sprite_Player_Base[num*Sprite_SIZE]
         call    DrawSprite
-ENDM    DrawPlayerM
+ENDM    mDrawPlayer
+
+        ;; in Pn, Gn: Player number, Ghost number
+mDrawGhost      MACRO   Pn, Gn
+        mov     AX, Ghost_Base[(Pn * Ghost_PER_PLAYER + Gn)*2]
+        mov     SI, offset Sprite_Ghost_Base[Pn*Sprite_SIZE]
+        call    DrawSprite
+ENDM    mDrawGhost
 ;;; ----------------------------------------------------------------------------------
         .MODEL MEDIUM
         .STACK 64
@@ -33,6 +40,11 @@ Player_Base                     LABEL   WORD
 Player_0                        DW      1200h
 Player1                         DW      121Fh
 
+Ghost_PER_PLAYER                EQU     1
+Ghost_Base                      LABEL   WORD
+Ghost_00                        DW      0000h
+Ghost_10                        DW      001Fh
+
 ;;; Level and Game State map
 levelMap                        DB      Grid_COLUMNS*(Grid_ROWS/4) dup(0)
                                 DB      Grid_COLUMNS*(Grid_ROWS/4) dup(2)
@@ -52,8 +64,11 @@ MAIN    PROC    FAR
        
         CALL    DrawMap         
 
-        DrawPlayerM 0
-        DrawPlayerM 1
+        mDrawPlayer 0
+        mDrawPlayer 1
+
+        mDrawGhost  0, 0
+        mDrawGhost  1, 0
 
 INPUT_LOOP:
         MOV     AH, 1
@@ -115,7 +130,7 @@ UPDATE_SQUARE:
         MOV     AH, 0
         INT     16H
 
-        DrawPlayerM 0
+        mDrawPlayer 0
         JMP     INPUT_LOOP
 
 EXIT:   
