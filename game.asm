@@ -1,7 +1,15 @@
         ;; in num: Player number
-mDrawPlayer     MACRO   num
-        mov     AX, Player_Base[num*2]
-        mov     SI, offset Sprite_Player_Base[num*Sprite_SIZE]
+mDrawPlayer     MACRO   playerNum
+        mov     AX, Sprite_SIZE
+        mov     SI, playerNum
+        mul     SI
+        mov     SI, AX          ;playerNum * Sprite_SIZE
+        
+        mov     BX, playerNum
+        shl     BX, 1           ;playerNum * 2
+        
+        mov     AX, Player_Base[BX]
+        add     SI, offset Sprite_Player_Base
         call    DrawSprite
 ENDM    mDrawPlayer
 
@@ -44,10 +52,11 @@ Map_Idx                         DW      ?
 include sprites.asm
         
 ;;; Entity positions (AH: Row, AL: Column)
-New_Position                    DW      ?
+newPosition                     DW      ?
+currentPlayer                   DW      ?      
 Player_Base                     LABEL   WORD
-Player_0                        DW      1200h
-Player1                         DW      121Fh
+Player_0                        DW      1202h
+Player1                         DW      121Dh
 
 Ghost_PER_PLAYER                EQU     1
 Ghost_Base                      LABEL   WORD
@@ -82,8 +91,8 @@ MAIN    PROC    FAR
        
         CALL    DrawMap         
 
-        mDrawPlayer 0
         mDrawPlayer 1
+        mDrawPlayer 0
 
         mDrawGhost  0, 0
         mDrawGhost  1, 0
@@ -111,47 +120,73 @@ MOVED?:
         CMP     AH, 01H
         JE      GAME_OVER_INTER_JMP
 
+        CMP     AH, 40H
+        JB      SET_PLAYER_0
+        JMP     SET_PLAYER_1
+
+SET_PLAYER_0:
+        MOV     currentPlayer, 0
+        JMP     GET_NEW_POS
+
+SET_PLAYER_1:
+        MOV     currentPlayer, 1
+        JMP     GET_NEW_POS
+
+GET_NEW_POS:    
         ;; Get the new position
-        MOV     DI, Player_0
-        MOV     New_Position, DI
+        MOV     SI, currentPlayer
+        SHL     SI, 1           ;Word
+        MOV     DI, Player_Base[SI]
+        MOV     newPosition, DI
 
         CMP     AH, 48H
+        JE      IS_UP
+        CMP     AH, 11h         ;W
         JE      IS_UP
 
         CMP     AH, 50H
         JE      IS_DOWN
+        CMP     AH, 1Fh         ;S
+        JE      IS_DOWN
 
         CMP     AH, 4DH
+        JE      IS_RIGHT
+        CMP     AH, 20h         ;D
         JE      IS_RIGHT
         
         CMP     AH, 4BH
         JE      IS_LEFT
+        CMP     AH, 1Eh         ;A
+        JE      IS_LEFT
 
         JMP     FRAME_START
 
+;;; ----------------------------------------------------------------------------------
+GAME_OVER_INTER_JMP:
+        JMP     GAME_OVER_INTER_JMP2
+;;; ----------------------------------------------------------------------------------
+
 IS_UP:
-        SUB     New_Position, 0100h
+        SUB     newPosition, 0100h
         JMP     TEST_NEW_POSITION
 
 IS_DOWN:
-        ADD     New_Position, 0100h
+        ADD     newPosition, 0100h
         JMP     TEST_NEW_POSITION
 
 IS_RIGHT:
-        ADD     New_Position, 0001h
+        ADD     newPosition, 0001h
         JMP     TEST_NEW_POSITION
 
 IS_LEFT:
-        SUB     New_Position, 0001h
+        SUB     newPosition, 0001h
         JMP     TEST_NEW_POSITION
 
 ;;; ----------------------------------------------------------------------------------
-GAME_OVER_INTER_JMP:
-        JMP     GAME_OVER
-;;; ----------------------------------------------------------------------------------
+
 TEST_NEW_POSITION:      
         ;; Get the map value
-        MOV     AX, New_Position
+        MOV     AX, newPosition
         CALL    RCtoMapIndex
         MOV     DL, levelMap[BX]
         MOV     Map_Value, DL
@@ -167,6 +202,11 @@ TEST_NEW_POSITION:
 
         jmp     MOVE_PLAYER
 
+;;; ----------------------------------------------------------------------------------
+GAME_OVER_INTER_JMP2:
+        JMP     GAME_OVER
+;;; ----------------------------------------------------------------------------------
+
 HIT_WALL:
         JMP     FRAME_START     ;Jump back
 
@@ -175,7 +215,9 @@ HIT_GHOST:
         ;; JMP     GAME_OVER
 
 HIT_COIN:
-        inc     Score_Player_0          ;TODO: Add multiplier
+        mov     SI, currentPlayer
+        SHL     SI, 1                   ;Word   
+        inc     Score_Base[SI]          ;TODO: Add multiplier
         jmp     CLEAR_PIECE
 
 HIT_POWERUP:
@@ -184,18 +226,22 @@ HIT_POWERUP:
 
 ;;; ----------------------------------------------------------------------------------
 CLEAR_PIECE:
-        MOV     AX, New_Position        ;Clear the powerup
+        MOV     AX, newPosition         ;Clear the powerup
         CALL    RCtoMapIndex
         MOV     levelMap[BX], 0        
 
 MOVE_PLAYER:    
-        mov     AX, Player_0            ;Erase the player and redraw the cell
+        mov     SI, currentPlayer
+        SHL     SI, 1                   ;Word   
+        mov     AX, Player_Base[SI]     ;Erase the player and redraw the cell
         CALL    RCtoMapSprite
         CALL    DrawSprite
 
-        mov     DI, New_Position        ;Update position
-        mov     Player_0, DI    
-        mDrawPlayer 0
+        mov     SI, newPosition        ;Update position
+        mov     DI, currentPlayer 
+        SHL     DI, 1                   ;Word   
+        mov     Player_Base[DI], SI    
+        mDrawPlayer currentPlayer
         
         JMP     FRAME_START
 
@@ -207,10 +253,9 @@ EXIT:
         
         mov     AH, 2           ;GG
         mov     dl, 'G'
-        mov     cx, 20
+        mov     cx, 40
 ggz:    int     21h
         loop    ggz
-
 
         mov     AH, 0
         int     16h
