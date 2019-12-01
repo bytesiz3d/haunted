@@ -28,7 +28,7 @@ mDrawEntities   MACRO
         mDrawGhost      1, 0
 ENDM    mDrawEntities
 ;;; ----------------------------------------------------------------------------------
-        .MODEL MEDIUM
+        .MODEL LARGE
         .STACK 64
 ;;; ----------------------------------------------------------------------------------
         .DATA
@@ -48,6 +48,14 @@ Map_C                           DB      ?
 Map_R                           DB      ?
 Map_Idx                         DW      ?
 
+;;; MoveGhost variables
+mg_nextStep                     LABEL   WORD
+mg_nextStep_C                   DB      ?
+mg_nextStep_R                   DB      ?
+mg_Step0                        DW      ?
+mg_Step1                        DW      ?
+mg_playerOffset                 DW      ?
+mg_ghostOffset                  DW      ?
 ;;; Sprites
 include sprites.asm
         
@@ -56,27 +64,27 @@ newPosition                     DW      ?
 currentPlayer                   DW      ?      
 Player_Base                     LABEL   WORD
 Player_0                        DW      1202h
-Player1                         DW      121Dh
+Player_1                        DW      121Dh
 
 Ghost_PER_PLAYER                EQU     1
 Ghost_Base                      LABEL   WORD
-Ghost_00                        DW      0000h
-Ghost_10                        DW      001Fh
+Ghost_00                        DW      0602h
+Ghost_10                        DW      061Dh
 
 ;;; Player scores
 Score_Base                      LABEL   BYTE
 Score_Player_0                  DW      0000h
 Score_Player_1                  DW      0000h
-Score_TARGET                    EQU     12
+Score_TARGET                    EQU     120
 
 ;;; Level and Game State map
-levelMap                        DB      Grid_COLUMNS*(Grid_ROWS/4) dup(SPRITE_ID_WALL)  ;Sprite Numbers
-                                DB      Grid_COLUMNS*(Grid_ROWS/4) dup(SPRITE_ID_POWERUP)
-                                DB      Grid_COLUMNS*(Grid_ROWS/4) dup(SPRITE_ID_COIN)
-                                DB      Grid_COLUMNS*(Grid_ROWS/4) dup(SPRITE_ID_EMPTY)
-
-;;; Current cell value
-Map_Value                       DB      ?
+ghostCounter                    DB      0
+mapValue                        DB      ?
+include map.asm
+;; levelMap                        DB      Grid_COLUMNS*(Grid_ROWS/4) dup(SPRITE_ID_WALL)  ;Sprite Numbers
+;;                                 DB      Grid_COLUMNS*(Grid_ROWS/4) dup(SPRITE_ID_POWERUP)
+;;                                 DB      Grid_COLUMNS*(Grid_ROWS/4) dup(SPRITE_ID_COIN)
+;;                                 DB      Grid_COLUMNS*(Grid_ROWS/4) dup(SPRITE_ID_EMPTY)
 ;;; ----------------------------------------------------------------------------------
         .CODE
 MAIN    PROC    FAR
@@ -97,29 +105,59 @@ MAIN    PROC    FAR
         mDrawGhost  0, 0
         mDrawGhost  1, 0
         
-FRAME_START:
-        ;; TODO: Insert frame delay
+        JMP     FRAME_START
+MOVE_GHOSTS_FRAME_START:
+        ;; 33 ms delay (CX:DX in microseconds)
+        MOV     CX, 0H
+        MOV     DX, 8235H
+        MOV     AH, 86H
+        INT     15H
         
+        ;; Delay ghosts
+        inc     ghostCounter
+        cmp     ghostCounter, 0Fh
+        jb      FRAME_START
+
+        mov     ghostCounter, 0
+
+        MOV     SI, offset Player_0
+        MOV     DI, offset Ghost_00
+        call    MoveGhost
+
+        MOV     SI, offset Player_1
+        MOV     DI, offset Ghost_10
+        call    MoveGhost
+
+        mDrawGhost 0, 0
+        mDrawGhost 1, 0
+FRAME_START:
         cmp     Score_Player_0, Score_TARGET
-        JAE     GAME_OVER_INTER_JMP
+        JAE     PLAYER_0_WIN
 
         cmp     Score_Player_1, Score_TARGET
-        JAE     GAME_OVER_INTER_JMP
+        JAE     PLAYER_1_WIN
 
-        ;; call    MoveGhosts
+        JMP     READ_INPUT
 
+PLAYER_0_WIN:
+PLAYER_1_WIN:   
+        JMP     GAME_OVER
+
+READ_INPUT:
         ;; Read input, jump back if no input was received
         MOV     AH, 1
         INT     16H
-        JZ      FRAME_START
+        JZ      MOVE_GHOSTS_FRAME_START
 
         MOV     AH, 0
         INT     16h             ;Clear the key queue, keep the value in AH
 
 MOVED?:
         CMP     AH, 01H
-        JE      GAME_OVER_INTER_JMP
+        JNZ     SET_PLAYER
+        JMP     GAME_OVER
 
+SET_PLAYER:     
         CMP     AH, 40H
         JB      SET_PLAYER_0
         JMP     SET_PLAYER_1
@@ -159,11 +197,8 @@ GET_NEW_POS:
         CMP     AH, 1Eh         ;A
         JE      IS_LEFT
 
-        JMP     FRAME_START
+        JMP     MOVE_GHOSTS_FRAME_START
 
-;;; ----------------------------------------------------------------------------------
-GAME_OVER_INTER_JMP:
-        JMP     GAME_OVER_INTER_JMP2
 ;;; ----------------------------------------------------------------------------------
 
 IS_UP:
@@ -189,26 +224,23 @@ TEST_NEW_POSITION:
         MOV     AX, newPosition
         CALL    RCtoMapIndex
         MOV     DL, levelMap[BX]
-        MOV     Map_Value, DL
+        MOV     mapValue, DL
 
-        cmp     Map_Value, SPRITE_ID_WALL
+        cmp     mapValue, SPRITE_ID_WALL
         je      HIT_WALL
         
-        cmp     Map_Value, SPRITE_ID_COIN
+        cmp     mapValue, SPRITE_ID_COIN
         je      HIT_COIN
 
-        cmp     Map_Value, SPRITE_ID_POWERUP
+        cmp     mapValue, SPRITE_ID_POWERUP
         je      HIT_POWERUP
 
         jmp     MOVE_PLAYER
 
 ;;; ----------------------------------------------------------------------------------
-GAME_OVER_INTER_JMP2:
-        JMP     GAME_OVER
-;;; ----------------------------------------------------------------------------------
 
 HIT_WALL:
-        JMP     FRAME_START     ;Jump back
+        JMP      MOVE_GHOSTS_FRAME_START     ;Jump back
 
 HIT_GHOST:
         ;; TODO: Ghost collision
@@ -217,7 +249,7 @@ HIT_GHOST:
 HIT_COIN:
         mov     SI, currentPlayer
         SHL     SI, 1                   ;Word   
-        inc     Score_Base[SI]          ;TODO: Add multiplier
+        inc     Score_Base[SI]          
         jmp     CLEAR_PIECE
 
 HIT_POWERUP:
@@ -243,7 +275,7 @@ MOVE_PLAYER:
         mov     Player_Base[DI], SI    
         mDrawPlayer currentPlayer
         
-        JMP     FRAME_START
+        JMP      MOVE_GHOSTS_FRAME_START
 
 ;;; ----------------------------------------------------------------------------------
 GAME_OVER:
@@ -267,14 +299,14 @@ ggz:    int     21h
         INT     21H
 MAIN    ENDP
 ;;; ----------------------------------------------------------------------------------
-;;; Draw procedures
+;;; Draw procedures and utility functions
 include draw.asm
         ;; in AX: Square_Row, Square_Column
         ;; in SI: Sprite offset
         ;; DrawSprite
-        
         ;; DrawMap
-;;; ----------------------------------------------------------------------------------
+
+        
         ;; in AH: Row, AL: Column
         ;; out BX: Map index
         ;; out DI: Row, Column
@@ -297,7 +329,7 @@ RCtoMapIndex    ENDP
 
         ;; in AH: Row, AL: Column
         ;; Out SI: Map Sprite offset
-RCtoMapSprite       PROC     NEAR
+RCtoMapSprite   PROC     NEAR
         call    RCtoMapIndex
         MOV     BL, levelMap[BX]    ;Retrieve the cell value
         MOV     BH, 0
@@ -310,6 +342,13 @@ RCtoMapSprite       PROC     NEAR
 
         MOV     AX, DI
         RET
-RCtoMapSprite        ENDP
+RCtoMapSprite   ENDP
+
+;;; ----------------------------------------------------------------------------------
+;;; Ghost logic
+include ghost.asm
+        ;; in SI: Player position offset
+        ;; in DI: Ghost position offset
+        ;; MoveGhost
 ;;; ----------------------------------------------------------------------------------
 END     MAIN
