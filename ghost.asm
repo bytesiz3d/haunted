@@ -47,10 +47,9 @@ ROW_VALID?:
         mov     BX, mg_ghostOffset 
         mov     BX, [BX]
         add     BH, mg_nextStep_R
-        mov     newPosition, BX
 
         ;; Get the map value of the suggested move
-        MOV     AX, newPosition
+        MOV     AX, BX
         CALL    RCtoMapIndex
         MOV     DL, levelMap[BX]
         MOV     mapValue, DL
@@ -67,10 +66,9 @@ COLUMN_VALID?:
         mov     BX, mg_ghostOffset 
         mov     BX, [BX]
         add     BL, mg_nextStep_C
-        mov     newPosition, BX
 
         ;; Get the map value of the suggested move
-        MOV     AX, newPosition
+        MOV     AX, BX
         CALL    RCtoMapIndex
         MOV     DL, levelMap[BX]
         MOV     mapValue, DL
