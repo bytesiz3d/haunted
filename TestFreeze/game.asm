@@ -139,28 +139,21 @@ FRAME_START:
         cmp     Score_Player_1, Score_TARGET
         JAE     PLAYER_1_WIN
 
-        CMP freezeCounter_Player0 , 0           ;Check if player0 has been freezed
-        JNZ Player0_Freezed
+        CMP     freezeCounter_Player0, 0           ;Check if player0 has been freezed
+        JZ      SKIP_PLAYER_0_FREEZE
+        DEC     freezeCounter_Player0
+SKIP_PLAYER_0_FREEZE:   
 
-        CMP freezeCounter_Player1 , 0           ;Check if player1 has been freezed
-        JNZ Player1_Freezed
-
+        CMP     freezeCounter_Player1, 0           ;Check if player0 has been freezed
+        JZ      SKIP_PLAYER_1_FREEZE
+        DEC     freezeCounter_Player1
+SKIP_PLAYER_1_FREEZE:   
                
         JMP     READ_INPUT
 
 PLAYER_0_WIN:
 PLAYER_1_WIN:   
         JMP     GAME_OVER
-
-Player0_Freezed:
-
-        DEC freezeCounter_Player0
-        JMP MOVE_GHOSTS_FRAME_START
-
-Player1_Freezed:
-
-        DEC freezeCounter_Player1
-        JMP MOVE_GHOSTS_FRAME_START 
 
 READ_INPUT:
         ;; Read input, jump back if no input was received
@@ -183,11 +176,17 @@ SET_PLAYER:
 
 SET_PLAYER_0:
         MOV     currentPlayer, 0
-        JMP     GET_NEW_POS
+        CMP     freezeCounter_Player0, 0           ;Check if player0 has been freezed
+        JZ      GET_NEW_POS
+
+        JMP     MOVE_GHOSTS_FRAME_START
 
 SET_PLAYER_1:
         MOV     currentPlayer, 1
-        JMP     GET_NEW_POS
+        CMP     freezeCounter_Player1, 0           ;Check if player1 has been freezed
+        JZ      GET_NEW_POS
+
+        JMP     MOVE_GHOSTS_FRAME_START
 
 GET_NEW_POS:    
         ;; Get the new position
@@ -273,17 +272,16 @@ HIT_COIN:
 
 HIT_POWERUP:
         ;; TODO: Activate Powerup
+        ;; Freeze test
+        CMP     currentPlayer, 0
+        JNZ     FREEZE_PLAYER0
 
-        CMP     currentPlayer , 0
-        JZ      freezePlayer1
+        MOV     freezeCounter_Player1, 50       ;Freeze player 1
+        JMP     CLEAR_PIECE 
 
-        MOV     freezeCounter_Player0 , 50           ; Freeze player 0
-        jmp     CLEAR_PIECE 
-
-        freezePlayer1:
-        
-        MOV     freezeCounter_Player1 , 50       ; Freeze player 1
-        jmp     CLEAR_PIECE
+FREEZE_Player0:
+        MOV     freezeCounter_Player0, 50       ;Freeze player 0    
+        JMP     CLEAR_PIECE
 
 ;;; ----------------------------------------------------------------------------------
 CLEAR_PIECE:

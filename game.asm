@@ -10,14 +10,14 @@ mDrawPlayer     MACRO   playerNum
         
         mov     AX, Player_Base[BX]
         add     SI, offset Sprite_Player_Base
-        call    DrawSprite
+        CALL    DrawSprite
 ENDM    mDrawPlayer
 
         ;; in Pn, Gn: Player number, Ghost number
 mDrawGhost      MACRO   Pn, Gn
         mov     AX, Ghost_Base[(Pn * Ghost_PER_PLAYER + Gn)*2]
         mov     SI, offset Sprite_Ghost_Base[Pn*Sprite_SIZE]
-        call    DrawSprite
+        CALL    DrawSprite
 ENDM    mDrawGhost
 
 mDrawEntities   MACRO
@@ -89,12 +89,12 @@ include map.asm
         .CODE
 MAIN    PROC    FAR
 
-        MOV     AX, @DATA
-        MOV     DS, AX
+        mov     AX, @DATA
+        mov     DS, AX
 
         ;; Clear the screen
-        MOV     AX, 4F02H
-        MOV     BX, 0105H
+        mov     AX, 4F02H
+        mov     BX, 0105H
         INT     10H   
        
         CALL    DrawMap         
@@ -108,25 +108,40 @@ MAIN    PROC    FAR
         JMP     FRAME_START
 MOVE_GHOSTS_FRAME_START:
         ;; 33 ms delay (CX:DX in microseconds)
-        MOV     CX, 0H
-        MOV     DX, 8235H
-        MOV     AH, 86H
+        mov     CX, 0H
+        mov     DX, 8235H
+        mov     AH, 86H
         INT     15H
         
+	;; Loop over all ghosts
+        ;; TODO: Don't hardcode
+	;; Exit if any ghost has the same position as the current player
+        mov     AX, Player_0
+        cmp	AX, Ghost_00
+        JE      PLAYER_1_WIN
+        cmp	AX, Ghost_10
+        JE      PLAYER_1_WIN
+
+        mov     AX, Player_1
+        cmp	AX, Ghost_00
+        JE      PLAYER_0_WIN
+        cmp	AX, Ghost_10
+        JE      PLAYER_0_WIN
+
         ;; Delay ghosts
         inc     ghostCounter
         cmp     ghostCounter, ghostDelay
-        jb      FRAME_START
+        JB      FRAME_START
 
         mov     ghostCounter, 0
 
-        MOV     SI, offset Player_0
-        MOV     DI, offset Ghost_00
-        call    MoveGhost
+        mov     SI, offset Player_0
+        mov     DI, offset Ghost_00
+        CALL    MoveGhost
 
-        MOV     SI, offset Player_1
-        MOV     DI, offset Ghost_10
-        call    MoveGhost
+        mov     SI, offset Player_1
+        mov     DI, offset Ghost_10
+        CALL    MoveGhost
 
         mDrawGhost 0, 0
         mDrawGhost 1, 0
@@ -145,11 +160,11 @@ PLAYER_1_WIN:
 
 READ_INPUT:
         ;; Read input, jump back if no input was received
-        MOV     AH, 1
+        mov     AH, 1
         INT     16H
         JZ      MOVE_GHOSTS_FRAME_START
 
-        MOV     AH, 0
+        mov     AH, 0
         INT     16h             ;Clear the key queue, keep the value in AH
 
 MOVED?:
@@ -163,19 +178,19 @@ SET_PLAYER:
         JMP     SET_PLAYER_1
 
 SET_PLAYER_0:
-        MOV     currentPlayer, 0
+        mov     currentPlayer, 0
         JMP     GET_NEW_POS
 
 SET_PLAYER_1:
-        MOV     currentPlayer, 1
+        mov     currentPlayer, 1
         JMP     GET_NEW_POS
 
 GET_NEW_POS:    
         ;; Get the new position
-        MOV     SI, currentPlayer
+        mov     SI, currentPlayer
         SHL     SI, 1           ;Word
-        MOV     DI, Player_Base[SI]
-        MOV     newPosition, DI
+        mov     DI, Player_Base[SI]
+        mov     newPosition, DI
 
         CMP     AH, 48H
         JE      IS_UP
@@ -221,46 +236,43 @@ IS_LEFT:
 
 TEST_NEW_POSITION:      
         ;; Get the map value
-        MOV     AX, newPosition
+        mov     AX, newPosition
         CALL    RCtoMapIndex
-        MOV     DL, levelMap[BX]
-        MOV     mapValue, DL
+        mov     DL, levelMap[BX]
+        mov     mapValue, DL
 
         cmp     mapValue, SPRITE_ID_WALL
-        je      HIT_WALL
+        JE      HIT_WALL
         
         cmp     mapValue, SPRITE_ID_COIN
-        je      HIT_COIN
+        JE      HIT_COIN
 
         cmp     mapValue, SPRITE_ID_POWERUP
-        je      HIT_POWERUP
+        JE      HIT_POWERUP
 
-        jmp     MOVE_PLAYER
+        JMP     MOVE_PLAYER
 
 ;;; ----------------------------------------------------------------------------------
 
 HIT_WALL:
         JMP      MOVE_GHOSTS_FRAME_START     ;Jump back
 
-HIT_GHOST:
-        ;; TODO: Ghost collision
-        ;; JMP     GAME_OVER
-
 HIT_COIN:
         mov     SI, currentPlayer
         SHL     SI, 1                   ;Word   
         inc     Score_Base[SI]          
-        jmp     CLEAR_PIECE
+        JMP     CLEAR_PIECE
 
 HIT_POWERUP:
         ;; TODO: Activate Powerup
-        jmp     CLEAR_PIECE 
+        JMP     CLEAR_PIECE 
 
 ;;; ----------------------------------------------------------------------------------
 CLEAR_PIECE:
-        MOV     AX, newPosition         ;Clear the powerup
+        mov     AX, newPosition         ;Clear the powerup
         CALL    RCtoMapIndex
-        MOV     levelMap[BX], 0        
+        mov     levelMap[BX], 0        
+
 
 MOVE_PLAYER:    
         mov     SI, currentPlayer
@@ -271,7 +283,7 @@ MOVE_PLAYER:
 
         mov     SI, newPosition        ;Update position
         mov     DI, currentPlayer 
-        SHL     DI, 1                   ;Word   
+        SHL     DI, 1                  ;Word   
         mov     Player_Base[DI], SI    
         mDrawPlayer currentPlayer
         
@@ -280,23 +292,23 @@ MOVE_PLAYER:
 ;;; ----------------------------------------------------------------------------------
 GAME_OVER:
 EXIT:   
-        MOV     AX, 3H          ;Return to text mode
-        INT     10H
+        mov     AX, 3h          ;Return to text mode
+        INT     10h
         
         mov     AH, 2           ;GG
-        mov     dl, 'G'
-        mov     cx, 40
-ggz:    int     21h
+        mov     DL, 'G'
+        mov     CX, 40
+ggz:    INT     21h
         loop    ggz
 
         mov     AH, 0
-        int     16h
+        INT     16h
         
-        MOV     AX, 3H          ;Return to text mode
-        INT     10H
+        mov     AX, 3h          ;Return to text mode
+        INT     10h
 
-        MOV     AH, 4CH         ;Exit the program
-        INT     21H
+        mov     AH, 4Ch         ;Exit the program
+        INT     21h
 MAIN    ENDP
 ;;; ----------------------------------------------------------------------------------
 ;;; Draw procedures and utility functions
@@ -311,36 +323,36 @@ include draw.asm
         ;; out BX: Map index
         ;; out DI: Row, Column
 RCtoMapIndex    PROC    NEAR
-        MOV     DI, AX
+        mov     DI, AX
 
-        MOV     CL, AL
-        MOV     CH, 0
+        mov     CL, AL
+        mov     CH, 0
 
-        MOV     AL, 0
+        mov     AL, 0
         XCHG    AH, AL
 
-        MOV     BX, Grid_COLUMNS
+        mov     BX, Grid_COLUMNS
         MUL     BX
         ADD     AX, CX
 
-        MOV     BX, AX
+        mov     BX, AX
         RET
 RCtoMapIndex    ENDP
 
         ;; in AH: Row, AL: Column
         ;; Out SI: Map Sprite offset
 RCtoMapSprite   PROC     NEAR
-        call    RCtoMapIndex
-        MOV     BL, levelMap[BX]    ;Retrieve the cell value
-        MOV     BH, 0
+        CALL    RCtoMapIndex
+        mov     BL, levelMap[BX]    ;Retrieve the cell value
+        mov     BH, 0
         
-        MOV     AX, Sprite_SIZE ;To get the offset of the sprite
+        mov     AX, Sprite_SIZE ;To get the offset of the sprite
         MUL     BX              ;Multiply the cell value by SPRITE_SIZE
         
         ADD     AX, offset Sprite_Map_Base      ;Add the offset to the base
-        MOV     SI, AX                          ;Load the address of the sprite
+        mov     SI, AX                          ;Load the address of the sprite
 
-        MOV     AX, DI
+        mov     AX, DI
         RET
 RCtoMapSprite   ENDP
 
