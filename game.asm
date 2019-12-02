@@ -77,8 +77,11 @@ Score_Player_1                  DW      0000h
 Score_TARGET                    EQU     30
 
 ;;; Level and Game State map
+freezeFrameCount                EQU     60      
 ghostDelay                      EQU     15
 ghostCounter                    DB      0
+freezeCounter_Player0           DB      0
+freezeCounter_Player1           DB      0
 mapValue                        DB      ?
 include map.asm
 ;; levelMap                        DB      Grid_COLUMNS*(Grid_ROWS/4) dup(SPRITE_ID_WALL)  ;Sprite Numbers
@@ -106,6 +109,16 @@ MAIN    PROC    FAR
         mDrawGhost  1, 0
         
         JMP     FRAME_START
+
+
+;;; ============================================================================================
+        
+PLAYER_0_WIN:   
+PLAYER_1_WIN:   
+        JMP     GAME_OVER
+
+;;; ============================================================================================
+        
 MOVE_GHOSTS_FRAME_START:
         ;; 33 ms delay (CX:DX in microseconds)
         mov     CX, 0H
@@ -145,6 +158,9 @@ MOVE_GHOSTS_FRAME_START:
 
         mDrawGhost 0, 0
         mDrawGhost 1, 0
+
+;;; ============================================================================================
+        
 FRAME_START:
         cmp     Score_Player_0, Score_TARGET
         JAE     PLAYER_0_WIN
@@ -152,22 +168,29 @@ FRAME_START:
         cmp     Score_Player_1, Score_TARGET
         JAE     PLAYER_1_WIN
 
-        JMP     READ_INPUT
+        CMP     freezeCounter_Player0, 0           ;Check if player0 has been freezed
+        JZ      SKIP_PLAYER_0_FREEZE
+        DEC     freezeCounter_Player0
+SKIP_PLAYER_0_FREEZE:   
 
-PLAYER_0_WIN:
-PLAYER_1_WIN:   
-        JMP     GAME_OVER
+        CMP     freezeCounter_Player1, 0           ;Check if player0 has been freezed
+        JZ      SKIP_PLAYER_1_FREEZE
+        DEC     freezeCounter_Player1
+SKIP_PLAYER_1_FREEZE:   
 
+;;; ============================================================================================
+        
 READ_INPUT:
         ;; Read input, jump back if no input was received
         mov     AH, 1
         INT     16H
-        JZ      MOVE_GHOSTS_FRAME_START
-
+        JNZ     MOVED?                 
+        
+        JMP     MOVE_GHOSTS_FRAME_START
+MOVED?:
         mov     AH, 0
         INT     16h             ;Clear the key queue, keep the value in AH
 
-MOVED?:
         CMP     AH, 01H
         JNZ     SET_PLAYER
         JMP     GAME_OVER
@@ -178,13 +201,21 @@ SET_PLAYER:
         JMP     SET_PLAYER_1
 
 SET_PLAYER_0:
-        mov     currentPlayer, 0
-        JMP     GET_NEW_POS
+        MOV     currentPlayer, 0
+        CMP     freezeCounter_Player0, 0           ;Check if player0 has been freezed
+        JZ      GET_NEW_POS
+
+        JMP     MOVE_GHOSTS_FRAME_START
 
 SET_PLAYER_1:
-        mov     currentPlayer, 1
-        JMP     GET_NEW_POS
+        MOV     currentPlayer, 1
+        CMP     freezeCounter_Player1, 0           ;Check if player1 has been freezed
+        JZ      GET_NEW_POS
 
+        JMP     MOVE_GHOSTS_FRAME_START
+
+;;; ============================================================================================
+        
 GET_NEW_POS:    
         ;; Get the new position
         mov     SI, currentPlayer
@@ -214,8 +245,8 @@ GET_NEW_POS:
 
         JMP     MOVE_GHOSTS_FRAME_START
 
-;;; ----------------------------------------------------------------------------------
-
+;;; ============================================================================================
+        
 IS_UP:
         SUB     newPosition, 0100h
         JMP     TEST_NEW_POSITION
@@ -232,8 +263,8 @@ IS_LEFT:
         SUB     newPosition, 0001h
         JMP     TEST_NEW_POSITION
 
-;;; ----------------------------------------------------------------------------------
-
+;;; ============================================================================================
+        
 TEST_NEW_POSITION:      
         ;; Get the map value
         mov     AX, newPosition
@@ -252,7 +283,7 @@ TEST_NEW_POSITION:
 
         JMP     MOVE_PLAYER
 
-;;; ----------------------------------------------------------------------------------
+;;; ============================================================================================
 
 HIT_WALL:
         JMP      MOVE_GHOSTS_FRAME_START     ;Jump back
@@ -264,10 +295,20 @@ HIT_COIN:
         JMP     CLEAR_PIECE
 
 HIT_POWERUP:
-        ;; TODO: Activate Powerup
+        ;; TODO: Make powerup activation modular 
+        ;; Freeze test
+        CMP     currentPlayer, 0
+        JNZ     FREEZE_PLAYER0
+
+        MOV     freezeCounter_Player1, freezeFrameCount       ;Freeze player 1
         JMP     CLEAR_PIECE 
 
-;;; ----------------------------------------------------------------------------------
+FREEZE_Player0:
+        MOV     freezeCounter_Player0, freezeFrameCount       ;Freeze player 0    
+        JMP     CLEAR_PIECE
+
+;;; ============================================================================================
+
 CLEAR_PIECE:
         mov     AX, newPosition         ;Clear the powerup
         CALL    RCtoMapIndex
@@ -289,7 +330,8 @@ MOVE_PLAYER:
         
         JMP      MOVE_GHOSTS_FRAME_START
 
-;;; ----------------------------------------------------------------------------------
+;;; ============================================================================================
+
 GAME_OVER:
 EXIT:   
         mov     AX, 3h          ;Return to text mode
@@ -310,7 +352,9 @@ ggz:    INT     21h
         mov     AH, 4Ch         ;Exit the program
         INT     21h
 MAIN    ENDP
-;;; ----------------------------------------------------------------------------------
+
+;;; ============================================================================================
+
 ;;; Draw procedures and utility functions
 include draw.asm
         ;; in AX: Square_Row, Square_Column
