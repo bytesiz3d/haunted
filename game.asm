@@ -46,7 +46,6 @@ Grid_ROWS                       EQU     24
 Map_RC                          LABEL   WORD
 Map_C                           DB      ?
 Map_R                           DB      ?
-Map_Idx                         DW      ?
 
 ;;; MoveGhost variables
 mg_nextStep                     LABEL   WORD
@@ -75,9 +74,10 @@ Ghost_10                        DW      061Dh
 Score_Base                      LABEL   BYTE
 Score_Player_0                  DW      0000h
 Score_Player_1                  DW      0000h
-Score_TARGET                    EQU     120
+Score_TARGET                    EQU     30
 
 ;;; Level and Game State map
+ghostDelay                      EQU     15
 ghostCounter                    DB      0
 mapValue                        DB      ?
 include map.asm
@@ -115,7 +115,7 @@ MOVE_GHOSTS_FRAME_START:
         
         ;; Delay ghosts
         inc     ghostCounter
-        cmp     ghostCounter, 0Fh
+        cmp     ghostCounter, ghostDelay
         jb      FRAME_START
 
         mov     ghostCounter, 0

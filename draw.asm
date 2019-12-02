@@ -5,7 +5,7 @@ DrawSprite     PROC    NEAR
         MOV     BH, 0
         MOV     BL, Square_RES
         ;; Start X
-        MOV     AL, Square_C
+        MOV     AL, Square_C    ;C * Square_RES --> C * Square_RES + Square_RES
         CBW
         MUL     BL
         MOV     CX, AX
@@ -15,7 +15,7 @@ DrawSprite     PROC    NEAR
         ADD     Square_XF, BX
         
         ;; Start Y
-        MOV     AL, Square_R
+        MOV     AL, Square_R    ;R * Square_RES --> R * Square_RES + Square_RES
         CBW
         MUL     BL
         MOV     DX, AX
@@ -49,14 +49,11 @@ DrawSprite     ENDP
 
 ;;; ----------------------------------------------------------------------------------
 DrawMap         PROC    NEAR
-        MOV     Map_Idx, 0000h  ;Current cell index
         MOV     Map_RC, 0000h   ;H: Row, L: Column
 CELL_LOOP:      
         MOV     AX, Map_RC      ;Pass the current Row, Column
         CALL    RCtoMapSprite
         CALL    DrawSprite
-
-        INC     Map_Idx
 
         INC     Map_C           ;Increment the column index
         CMP     Map_C, Grid_COLUMNS
