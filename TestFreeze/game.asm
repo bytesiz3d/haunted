@@ -139,17 +139,18 @@ FRAME_START:
         cmp     Score_Player_1, Score_TARGET
         JAE     PLAYER_1_WIN
 
-        JMP     READ_INPUT
-
-PLAYER_0_WIN:
-PLAYER_1_WIN:   
-        JMP     GAME_OVER
-
         CMP freezeCounter_Player0 , 0           ;Check if player0 has been freezed
         JNZ Player0_Freezed
 
         CMP freezeCounter_Player1 , 0           ;Check if player1 has been freezed
         JNZ Player1_Freezed
+
+               
+        JMP     READ_INPUT
+
+PLAYER_0_WIN:
+PLAYER_1_WIN:   
+        JMP     GAME_OVER
 
 Player0_Freezed:
 
@@ -159,7 +160,7 @@ Player0_Freezed:
 Player1_Freezed:
 
         DEC freezeCounter_Player1
-        JMP MOVE_GHOSTS_FRAME_START        
+        JMP MOVE_GHOSTS_FRAME_START 
 
 READ_INPUT:
         ;; Read input, jump back if no input was received
