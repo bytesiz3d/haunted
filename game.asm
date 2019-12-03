@@ -326,8 +326,10 @@ MOVE_PLAYER:
         mov     DI, currentPlayer 
         SHL     DI, 1                  ;Word   
         mov     Player_Base[DI], SI    
-        mDrawPlayer currentPlayer
-        
+
+        mDrawPlayer 0
+        mDrawPlayer 1
+
         JMP      MOVE_GHOSTS_FRAME_START
 
 ;;; ============================================================================================
