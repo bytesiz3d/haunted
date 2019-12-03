@@ -1,6 +1,6 @@
 sW              EQU     SPRITE_ID_WALL
 sC              EQU     SPRITE_ID_COIN
-sF              EQU     SPRITE_ID_POWERUP
+sF              EQU     SPRITE_ID_FREEZE
 levelMap        DB     sW, sW, sW, sW, sW, sW, sW, sW, sW, sW, sW, sW, sW, sW, sW, sW, sW, sW, sW, sW, sW, sW, sW, sW, sW, sW, sW, sW, sW, sW, sW, sW  
                 DB     sW, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, sW  
                 DB     sW, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, sW  

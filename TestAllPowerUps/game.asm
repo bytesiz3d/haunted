@@ -250,8 +250,8 @@ TEST_NEW_POSITION:
         cmp     mapValue, SPRITE_ID_COIN
         je      HIT_COIN
 
-        cmp     mapValue, SPRITE_ID_POWERUP
-        je      HIT_POWERUP
+        cmp     mapValue, SPRITE_ID_FREEZE
+        je      HIT_FREEZE
 
         jmp     MOVE_PLAYER
 
@@ -270,7 +270,7 @@ HIT_COIN:
         inc     Score_Base[SI]          
         jmp     CLEAR_PIECE
 
-HIT_POWERUP:
+HIT_FREEZE:
         ;; TODO: Activate Powerup
         ;; Freeze test
         CMP     currentPlayer, 0
