@@ -253,6 +253,9 @@ TEST_NEW_POSITION:
         cmp     mapValue, SPRITE_ID_FREEZE
         je      HIT_FREEZE
 
+        cmp     mapValue , SPRITE_ID_BIG_COIN
+        je      HIT_BIG_COIN
+
         jmp     MOVE_PLAYER
 
 ;;; ----------------------------------------------------------------------------------
@@ -271,13 +274,20 @@ HIT_COIN:
         jmp     CLEAR_PIECE
 
 HIT_FREEZE:
-        ;; TODO: Activate Powerup
+
         ;; Freeze test
         CMP     currentPlayer, 0
         JNZ     FREEZE_PLAYER0
 
         MOV     freezeCounter_Player1, 50       ;Freeze player 1
         JMP     CLEAR_PIECE 
+
+HIT_BIG_COIN:
+
+        mov     SI, currentPlayer
+        SHL     SI, 1                  ;Word
+        add     Score_Base[SI] , 10
+        jmp     CLEAR_PIECE
 
 FREEZE_Player0:
         MOV     freezeCounter_Player0, 50       ;Freeze player 0    
