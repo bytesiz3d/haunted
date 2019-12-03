@@ -1,6 +1,7 @@
 MoveGhost     PROC    NEAR
         mov     mg_playerOffset, SI
         mov     mg_ghostOffset, DI
+        mov     mg_ghostSpriteOffset, BX
         
         ;; Calculate the pair
         mov     AX, [SI] 
@@ -115,27 +116,22 @@ RANDOMIZE_LOOP:
         mov     mg_nextStep, AX
 
 SET_STEP:
+        ;; Erase ghost, redraw cell
         mov     BX, mg_ghostOffset
-        MOV     AX, [BX]        ;Erase the ghost and redraw the cell
+        MOV     AX, [BX]        
         CALL    RCtoMapSprite
         CALL    DrawSprite
 
-        mov     BX, mg_ghostOffset      ;Update position
+        ;; Update position
+        mov     BX, mg_ghostOffset
         MOV     AX, [BX]
         add     AL, mg_nextStep_C
         add     AH, mg_nextStep_R
         mov     [BX], AX
         
-        ;; Check if we touched the player
-        mov     BX, mg_ghostOffset
-        mov     BX, [BX]
-        MOV     SI, mg_playerOffset
-        cmp     BX, [SI]
-        jne     SURVIVED
-
-        jmp     GAME_OVER
-
-SURVIVED:       
+        ;; Draw ghost
+        mov     SI, mg_ghostSpriteOffset
+        CALL    DrawSprite
         RET
         
 MoveGhost      ENDP
