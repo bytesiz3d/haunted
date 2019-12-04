@@ -50,7 +50,7 @@ MAIN PROC FAR
 				
 					call CloseFile
 					
-g	
+
 					call CloseFile
 				
 
