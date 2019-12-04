@@ -2,14 +2,16 @@
 .Stack 64
 .Data
 
-
 HauntedWidth EQU 320
 HauntedHeight EQU 89
 HauntedFilename DB 'h.bin', 0
 HauntedFilehandle DW ?
 HauntedData DB HauntedWidth*HauntedHeight dup(0)
+P1Name 						db 10,?,10 dup('$')
+P2Name 						db 10,?,10 dup('$')
 NewGame						DB  0,0,0,'NEW GAME',0,0,0
 Quit						DB  0,0,0,'QUIT',0,0,0                 
+playername					DB  'Player$',' Name: $'                 
 
 .Code
 MAIN PROC FAR
@@ -48,11 +50,7 @@ MAIN PROC FAR
 				
 					call CloseFile
 					
-					; return control to operating system
-				;	MOV AH , 4ch
-				;	INT 21H
-    
-	
+g	
 					call CloseFile
 				
 
@@ -69,7 +67,6 @@ MAIN PROC FAR
 					MOV DH,30 ;Y			
 					XCHG CL,CH
 									
-					;Green (A) on white(F) background
 					WriteNEwGame:
 					
 					MOV BL,CL
@@ -81,7 +78,7 @@ MAIN PROC FAR
 					
 					MOV AH,9 ;Display
 					MOV BH,0 ;Page 0
-					MOV AL,[SI] ;Letter D
+					MOV AL,[SI] ;Letter
 					INC SI
 					PUSH CX
 					MOV CX,1H ;5 times
@@ -111,7 +108,7 @@ MAIN PROC FAR
 					
 					MOV AH,9 ;Display
 					MOV BH,0 ;Page 0
-					MOV AL,[SI] ;Letter D
+					MOV AL,[SI] ;Letter 
 					INC SI
 					PUSH CX
 					MOV CX,1H ;5 times
@@ -142,6 +139,60 @@ MAIN PROC FAR
                     INT 21H
 					
 					StartGame:
+					
+					MOV DL,81 ;X
+					MOV DH,30 ;Y
+					MOV AH,2
+					INT 10H
+
+					MOV CX,10 ;10 times
+					MOV AL,0
+					MOV AH,9
+					MOV BX,0
+					INT 10H
+
+					
+					
+					
+					MOV DL,31 ;X		
+					MOV DH,30 ;Y					
+					MOV AH,2
+					INT 10H
+					mov ah, 9
+					mov dx, offset playername
+					int 21h
+					mov ah,2
+					mov dl,'1'
+					int 21h 
+					mov ah, 9
+					mov dx, offset playername[7]
+					int 21h 
+					
+					mov ah,0AH
+					mov dx,offset P1Name
+					int 21h 
+
+					
+					MOV DL,81 ;X		
+					MOV DH,30 ;Y					
+					MOV AH,2
+					INT 10H
+					mov ah, 9
+					mov dx, offset playername
+					int 21h
+					mov ah,2
+					mov dl,'2'
+					int 21h 
+					mov ah, 9
+					mov dx, offset playername[7]
+					int 21h 
+					
+					
+					mov ah,0AH
+					mov dx,offset P2Name
+					int 21h 
+					
+						
 	
 	
 	
