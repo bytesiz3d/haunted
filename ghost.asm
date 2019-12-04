@@ -1,10 +1,12 @@
-MoveGhost     PROC    NEAR
-        mov     mg_playerOffset, SI
+        ;; in AX: Player position       
+        ;; in DI: Ghost position offset
+        ;; in BX: Ghost sprite offset
+MoveGhost       PROC    NEAR
         mov     mg_ghostOffset, DI
         mov     mg_ghostSpriteOffset, BX
         
         ;; Calculate the pair
-        mov     AX, [SI] 
+        ;; AX:  Player
         mov     BX, [DI] 
         mov     mg_nextStep, 0000h
 
@@ -134,4 +136,13 @@ SET_STEP:
         CALL    DrawSprite
         RET
         
-MoveGhost      ENDP
+MoveGhost       ENDP
+
+;;; ====================================================================
+        ;; in DI: Ghost position offset
+        ;; in BX: Ghost sprite offset
+ShoveGhost      PROC    NEAR
+        MOV     AX, 0h
+        CALL    MoveGhost        
+        RET
+ShoveGhost      ENDP

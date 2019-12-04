@@ -5,7 +5,25 @@ include macros.asm
 
 ;;; ============================================================================================
         .DATA
-;;; DrawSprite variables
+;;; Scoreboard variables
+SB_string                       DB      5 dup('$') 
+SB_ext                          DB      "'s score: " 
+SB_line                         DB      128 dup('_') 
+SB_space                        DB      5(32)
+
+;;; Haunted_MainMenu variables
+HauntedWidth                    EQU     320
+HauntedHeight                   EQU     89
+HauntedFilename                 DB      "h.bin", 0
+HauntedFilehandle               DW      ?
+HauntedData                     DB      HauntedWidth*HauntedHeight dup(0)
+p1Name                          DB      20, ?, 20 dup("$")
+p2Name                          DB      20, ?, 20 dup("$")
+newGame                         DB      0, 0, 0, "NEW GAME", 0, 0, 0
+quit                            DB      0, 0, 0, "QUIT", 0, 0, 0                 
+playerName                      DB      "Player$", " Name: $"                 
+
+;; DrawSprite variables
 Square_C                        DB      ?
 Square_R                        DB      ?
 Square_XF                       DW      ?
@@ -26,7 +44,6 @@ mg_nextStep_C                   DB      ?
 mg_nextStep_R                   DB      ?
 mg_Step0                        DW      ?
 mg_Step1                        DW      ?
-mg_playerOffset                 DW      ?
 mg_ghostOffset                  DW      ?
 mg_ghostSpriteOffset            DW      ?
 
@@ -65,8 +82,21 @@ ghostDamage                     EQU     10
 ghostDelay                      EQU     15
 ghostCounter                    DB      ghostDelay
 
+totalFrameCount                 DW      30 * 60
+
 ;;; ============================================================================================
         .CODE
+;;; Main menu
+include menu.asm
+        ;; Haunted_MainMenu
+        
+;;; ============================================================================================
+;;; Scoreboard
+include score.asm
+        ;; Scoreboard
+        ;; InttoString
+        
+;;; ============================================================================================
 ;;; Draw procedures and utility functions
 include draw.asm
         ;; in AX: Square_Row, Square_Column
@@ -99,7 +129,7 @@ RCtoMapIndex    ENDP
         ;; Out SI: Map Sprite offset
 RCtoMapSprite   PROC     NEAR
         CALL    RCtoMapIndex
-        mov     BL, levelMap[BX]    ;Retrieve the cell value
+        mov     BL, levelMap[BX]        ;Retrieve the cell value
         mov     BH, 0
         
         mov     AX, Sprite_SIZE ;To get the offset of the sprite
@@ -125,12 +155,14 @@ MAIN    PROC    FAR
 
         mov     AX, @DATA
         mov     DS, AX
+        mov     ES, AX
 
         ;; Clear the screen
         mov     AX, 4F02H
         mov     BX, 0105H
         INT     10H   
        
+        CALL    Haunted_MainMenu
         CALL    DrawMap         
 
         mDrawEntities
@@ -148,12 +180,12 @@ MOVE_GHOSTS_FRAME_START:
 
         mov     ghostCounter, ghostDelay
 
-        mov     SI, offset Player_0
+        mov     AX, Player_0
         mov     DI, offset Ghost_00
         mov     BX, offset Sprite_Ghost_0
         CALL    MoveGhost
 
-        mov     SI, offset Player_1
+        mov     AX, Player_1
         mov     DI, offset Ghost_10
         mov     BX, offset Sprite_Ghost_1
         CALL    MoveGhost
@@ -166,31 +198,56 @@ FRAME_START:
         mov     AH, 86h
         INT     15h
 
+        call    Scoreboard
+        
+        DEC     totalFrameCount
+        JNZ     HIT_GHOST
+        JMP     EXIT
+
+HIT_GHOST:     
         ;; Loop over all ghosts
         ;; TODO: Don't hardcode
         ;; Reduce the player's score by value if any ghost hit them
+        ;; Player 0:
         mov     AX, Player_0
         cmp     AX, Ghost_00
         JE      PLAYER_0_HIT_GHOST
         cmp     AX, Ghost_10
         JE      PLAYER_0_HIT_GHOST
         JMP     END_PLAYER_0_HIT_GHOST
+
 PLAYER_0_HIT_GHOST:
-        ;; TODO: Push ghost away
+        mov     DI, offset Ghost_00
+        mov     BX, offset Sprite_Ghost_0
+        CALL    ShoveGhost
+
+        mov     DI, offset Ghost_00
+        mov     BX, offset Sprite_Ghost_0
+        CALL    ShoveGhost
+
         SUB     Score_Player_0, ghostDamage
         CMP     Score_Player_0, 0
         JG      END_PLAYER_0_HIT_GHOST
         MOV     Score_Player_0, 0
 END_PLAYER_0_HIT_GHOST:   
 
+        ;; Player 1:
         mov     AX, Player_1
         cmp     AX, Ghost_00
         JE      PLAYER_1_HIT_GHOST
         cmp     AX, Ghost_10
         JE      PLAYER_1_HIT_GHOST
         JMP     END_PLAYER_1_HIT_GHOST
+
 PLAYER_1_HIT_GHOST:
-        ;; TODO: Push ghost away
+        mov     DI, offset Ghost_10
+        mov     BX, offset Sprite_Ghost_1
+        CALL    ShoveGhost
+
+        mov     DI, offset Ghost_10
+        mov     BX, offset Sprite_Ghost_1
+        CALL    ShoveGhost
+
         SUB     Score_Player_1, ghostDamage
         CMP     Score_Player_1, 0
         JG      END_PLAYER_1_HIT_GHOST
@@ -319,8 +376,11 @@ TEST_NEW_POSITION:
         cmp     mapValue, SPRITE_ID_COIN
         JE      HIT_COIN
 
-        cmp     mapValue, SPRITE_ID_POWERUP
-        JE      HIT_POWERUP
+        cmp     mapValue, SPRITE_ID_FREEZE
+        je      HIT_FREEZE
+
+        cmp     mapValue, SPRITE_ID_BIG_COIN
+        je      HIT_BIG_COIN
 
         JMP     MOVE_PLAYER
 
@@ -335,6 +395,7 @@ HIT_COIN:
         JMP     CLEAR_PIECE
 
 HIT_POWERUP:
+HIT_FREEZE:
         ;; TODO: Make powerup activation modular 
         ;; Freeze test
         CMP     currentPlayer, 0
@@ -345,6 +406,12 @@ HIT_POWERUP:
 
 FREEZE_Player0:
         MOV     freezeCounter_Player0, freezeFrameCount       ;Freeze player 0    
+        JMP     CLEAR_PIECE
+
+HIT_BIG_COIN:
+        MOV     SI, currentPlayer
+        SHL     SI, 1                  ;Word
+        ADD     Score_Base[SI], 10
         JMP     CLEAR_PIECE
 
 ;;; ============================================================================================
