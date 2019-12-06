@@ -1,3 +1,43 @@
+;;; ============================================================================================
+        ;; in AH: Row, AL: Column
+        ;; out BX: Map index
+        ;; out DI: Row, Column
+RCtoMapIndex    PROC    NEAR
+        mov     DI, AX
+
+        mov     CL, AL
+        mov     CH, 0
+
+        mov     AL, 0
+        XCHG    AH, AL
+
+        mov     BX, Grid_COLUMNS
+        MUL     BX
+        ADD     AX, CX
+
+        mov     BX, AX
+        RET
+RCtoMapIndex    ENDP
+
+;;; ============================================================================================
+        ;; in AH: Row, AL: Column
+        ;; Out SI: Map Sprite offset
+RCtoMapSprite   PROC     NEAR
+        CALL    RCtoMapIndex
+        mov     BL, levelMap[BX]        ;Retrieve the cell value
+        mov     BH, 0
+        
+        mov     AX, Sprite_SIZE ;To get the offset of the sprite
+        MUL     BX              ;Multiply the cell value by SPRITE_SIZE
+        
+        ADD     AX, offset Sprite_Map_Base      ;Add the offset to the base
+        mov     SI, AX                          ;Load the address of the sprite
+
+        mov     AX, DI
+        RET
+RCtoMapSprite   ENDP
+
+;;; ============================================================================================
 DrawSprite     PROC    NEAR
         MOV     Square_R, AH
         MOV     Square_C, AL
@@ -27,7 +67,7 @@ DrawSprite     PROC    NEAR
 DRAW_LOOP:
         MOV     AH, 0CH
         LODSB                   ;Load [SI] into AL, increment SI
-		CALL	CheckDoubleSpeed
+	CALL	CheckDoubleSpeed
         INT     10H             ;Draw
 
         INC     CX
@@ -48,7 +88,7 @@ DRAW_LOOP:
         RET
 DrawSprite     ENDP
 
-;;; ----------------------------------------------------------------------------------
+;;; ============================================================================================
 DrawMap         PROC    NEAR
         MOV     Map_RC, 0000h   ;H: Row, L: Column
 CELL_LOOP:      
@@ -69,22 +109,3 @@ SKIP_CR_ADJUST:
 
         RET
 DrawMap         ENDP
-
-CheckDoubleSpeed         PROC    NEAR
-	
-	CMP AL,15
-	JNE	CheckDone
-	
-	CMP		currentGhost,1
-	JE		Ghost__1
-	
-	ADD AL,doubleSpeedCounter_Ghost0
-	JMP 	CheckDone
-	
-Ghost__1:	
-
-	ADD AL,doubleSpeedCounter_Ghost1
-	
-	CheckDone:
-	RET
-CheckDoubleSpeed         ENDP

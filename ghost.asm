@@ -137,8 +137,7 @@ SET_STEP:
         CALL    DrawSprite
 				
 		
-	    RET
-        
+	RET
 MoveGhost       ENDP
 
 ;;; ====================================================================
@@ -150,29 +149,94 @@ ShoveGhost      PROC    NEAR
         RET
 ShoveGhost      ENDP
 
-
+;;; ====================================================================
 MoveGhost2XChecker      PROC    NEAR
 
-	CMP		currentGhost,1
-	JE		Ghost___1
+	CMP	currentGhost,1
+	JE	Ghost___1
 	
-	CMP		doubleSpeedCounter_Ghost0,0
-	JE		NO2X
+	CMP	doubleSpeedCounter_Ghost0,0
+	JE	NO2X
 	mov     AX, Player_0
-    mov     DI, offset Ghost_00
-    mov     BX, offset Sprite_Ghost_0
-	jmp     callmoveghost
+        mov     DI, offset Ghost_00
+        mov     BX, offset Sprite_Ghost_0
+	jmp     CALL_MOVE_GHOST
 Ghost___1:
-	CMP		doubleSpeedCounter_Ghost1,0
-	JE		NO2X
+	CMP	doubleSpeedCounter_Ghost1,0
+	JE	NO2X
 	mov     AX, Player_1
-    mov     DI, offset Ghost_10
-    mov     BX, offset Sprite_Ghost_1
+        mov     DI, offset Ghost_10
+        mov     BX, offset Sprite_Ghost_1
 	
-callmoveghost:	
-	CALL MoveGhost
+CALL_MOVE_GHOST:	
+	CALL    MoveGhost
 	
-	NO2X:
+NO2X:
 	RET
 MoveGhost2XChecker      ENDP
 
+;;; ============================================================================================
+CheckGhostCollision     PROC    FAR
+        ;; Loop over all ghosts
+        ;; TODO: Don't hardcode
+        ;; Reduce the player's score by value if any ghost hit them
+        ;; Player 0:
+        mov     AX, Player_0
+        cmp     AX, Ghost_00
+        JE      PLAYER_0_HIT_GHOST
+        cmp     AX, Ghost_10
+        JE      PLAYER_0_HIT_GHOST
+        JMP     END_PLAYER_0_HIT_GHOST
+
+PLAYER_0_HIT_GHOST:
+        mov	currentGhost,0
+
+        mov     DI, offset Ghost_00
+        mov     BX, offset Sprite_Ghost_0
+	CALL    ShoveGhost
+
+        mov     DI, offset Ghost_00
+        mov     BX, offset Sprite_Ghost_0
+        CALL    ShoveGhost
+
+        mov     DI, offset Ghost_00
+        mov     BX, offset Sprite_Ghost_0
+        CALL    ShoveGhost
+
+        SUB     Score_Player_0, ghostDamage
+        CMP     Score_Player_0, 0
+        JG      END_PLAYER_0_HIT_GHOST
+        MOV     Score_Player_0, 0
+END_PLAYER_0_HIT_GHOST:   
+
+        ;; Player 1:
+        mov     AX, Player_1
+        cmp     AX, Ghost_00
+        JE      PLAYER_1_HIT_GHOST
+        cmp     AX, Ghost_10
+        JE      PLAYER_1_HIT_GHOST
+        JMP     END_PLAYER_1_HIT_GHOST
+
+PLAYER_1_HIT_GHOST:
+	mov	currentGhost,1
+
+        mov     DI, offset Ghost_10
+        mov     BX, offset Sprite_Ghost_1
+        CALL    ShoveGhost
+
+        mov     DI, offset Ghost_10
+        mov     BX, offset Sprite_Ghost_1
+        CALL    ShoveGhost
+
+        mov     DI, offset Ghost_10
+        mov     BX, offset Sprite_Ghost_1
+        CALL    ShoveGhost
+
+        SUB     Score_Player_1, ghostDamage
+        CMP     Score_Player_1, 0
+        JG      END_PLAYER_1_HIT_GHOST
+        MOV     Score_Player_1, 0
+END_PLAYER_1_HIT_GHOST:   
+
+        RET
+CheckGhostCollision     ENDP
