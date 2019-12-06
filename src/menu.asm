@@ -1,7 +1,7 @@
 ;; HauntedWidth            EQU     320
 ;; HauntedHeight           EQU     89
 ;; HauntedFilename         DB      'practice\h.bin', 0
-;; HauntedFilehandle       DW      ?
+;; fileHandle       DW      ?
 ;; HauntedData             DB      HauntedWidth*HauntedHeight dup(0)
 ;; P1Name                  DB      10, ?, 10 dup("$")
 ;; P2Name                  DB      10, ?, 10 dup("$")
@@ -20,14 +20,14 @@ OpenFile        PROC    NEAR
         ;; you should check carry flag to make sure it worked correctly
         ;; carry = 0 -> successful , file handle -> AX
         ;; carry = 1 -> failed , AX -> error code
-        MOV     [HauntedFilehandle], AX
+        MOV     [fileHandle], AX
         RET
 OpenFile        ENDP
 
 ;;; ===============================================================================
 ReadData        PROC    NEAR
         MOV     AH, 3Fh
-        MOV     BX, [HauntedFilehandle]
+        MOV     BX, [fileHandle]
         MOV     CX, HauntedWidth * HauntedHeight ; number of bytes to read
         LEA     DX, HauntedData
         INT     21h
@@ -37,10 +37,36 @@ ReadData        ENDP
 ;;; ===============================================================================
 CloseFile       PROC    NEAR
         MOV     AH, 3Eh
-        MOV     BX, [HauntedFilehandle]
+        MOV     BX, [fileHandle]
         INT     21h
         RET
 CloseFile       ENDP
+
+;;; ===============================================================================
+        ;; in SI: Filename offset, (null-terminated)
+        ;; in DI: Destination offset
+LoadSprite      PROC    NEAR
+        ;; Open File
+        MOV     AH, 3Dh
+        MOV     AL, 0
+        MOV     DX, SI
+        INT     21h
+        MOV     [fileHandle], AX
+
+        ;; Read data
+        MOV     AH, 3Fh
+        MOV     BX, [fileHandle]
+        MOV     CX, SPRITE_SIZE
+        MOV     DX, DI
+        INT     21h
+
+        ;; Close File
+        MOV     AH, 3Eh
+        MOV     BX, [fileHandle]
+        INT     21h       
+
+        RET
+LoadSprite      ENDP
 
 ;;; ===============================================================================
 Haunted_MainMenu        PROC    NEAR
@@ -196,3 +222,6 @@ StartGame:
         int     21h 
         RET
 Haunted_MainMenu        ENDP
+
+      
+        

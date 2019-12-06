@@ -12,6 +12,7 @@ include data.asm
 ;;; Main menu
 include menu.asm
         ;; Haunted_MainMenu
+        ;; LoadSprites
         
 ;;; ============================================================================================
 ;;; Scoreboard
@@ -58,6 +59,11 @@ MAIN    PROC    FAR
         mov     AX, 4F02H
         mov     BX, 0105H
         INT     10H   
+
+        LEA     DI, Sprite_Teleport
+        LEA     SI, tpFilename
+
+        CALL    LoadSprite
        
         CALL    Haunted_MainMenu
         CALL    DrawMap         

@@ -319,7 +319,8 @@ Sprite_Damage                   DB      000,000,000,000,000,000,000,000,000,000,
                                 DB      000,000,000,000,000,000,000,000,000,000,000,000,088,088,088,088,088,088,088,088,000,000,000,000,000,000,000,000,000,000,000,000 ;16
                                 DB      000,000,000,000,000,000,000,000,000,000,000,000,088,088,088,088,088,088,088,088,000,000,000,000,000,000,000,000,000,000,000,000 ;16
         
-Sprite_PurpleSquare             DB      Sprite_SIZE dup(107) ;Teleport
+Sprite_Teleport                 DB      Sprite_SIZE dup(?)
 Sprite_GreenSquare              DB      Sprite_SIZE dup(47)  ;Double Ghost Speed
+;; Sprite_PurpleSquare             DB      Sprite_SIZE dup(107) ;Teleport
 
 

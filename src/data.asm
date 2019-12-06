@@ -1,3 +1,5 @@
+;;; LoadSprite test
+tpFilename                      DB      "../bin/teleport", 0
 ;;; Scoreboard variables
 SB_string                       DB      5 dup('$') 
 SB_ext                          DB      "'s score: " 
@@ -7,9 +9,9 @@ SB_space                        DB      5(32)
 ;;; Haunted_MainMenu variables
 HauntedWidth                    EQU     320
 HauntedHeight                   EQU     89
-HauntedFilename                 DB      "h.bin", 0
-HauntedFilehandle               DW      ?
+HauntedFilename                 DB      "../bin/haunted", 0
 HauntedData                     DB      HauntedWidth*HauntedHeight dup(0)
+fileHandle                      DW      ?
 p1Name                          DB      20, ?, 20 dup("$")
 p2Name                          DB      20, ?, 20 dup("$")
 newGame                         DB      0, 0, 0, "NEW GAME", 0, 0, 0
@@ -83,7 +85,7 @@ teleportIndicator               DB	2	; = 2 no teleport , = 0 player 0 hit telepo
 
 
 ghostDamage                     EQU     10
-ghostDelay                      EQU     15
+ghostDelay                      EQU     150
 ghostCounter                    DB      ghostDelay
 
 totalFrameCount                 DW      30 * 60
