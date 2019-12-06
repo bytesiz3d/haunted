@@ -2,7 +2,8 @@
         ;; in DI: Ghost position offset
         ;; in BX: Ghost sprite offset
 MoveGhost       PROC    NEAR
-        mov     mg_ghostOffset, DI
+        			
+		mov     mg_ghostOffset, DI
         mov     mg_ghostSpriteOffset, BX
         
         ;; Calculate the pair
@@ -134,7 +135,9 @@ SET_STEP:
         ;; Draw ghost
         mov     SI, mg_ghostSpriteOffset
         CALL    DrawSprite
-        RET
+				
+		
+	    RET
         
 MoveGhost       ENDP
 
@@ -146,3 +149,30 @@ ShoveGhost      PROC    NEAR
         CALL    MoveGhost        
         RET
 ShoveGhost      ENDP
+
+
+MoveGhost2XChecker      PROC    NEAR
+
+	CMP		currentGhost,1
+	JE		Ghost___1
+	
+	CMP		doubleSpeedCounter_Ghost0,0
+	JE		NO2X
+	mov     AX, Player_0
+    mov     DI, offset Ghost_00
+    mov     BX, offset Sprite_Ghost_0
+	jmp     callmoveghost
+Ghost___1:
+	CMP		doubleSpeedCounter_Ghost1,0
+	JE		NO2X
+	mov     AX, Player_1
+    mov     DI, offset Ghost_10
+    mov     BX, offset Sprite_Ghost_1
+	
+callmoveghost:	
+	CALL MoveGhost
+	
+	NO2X:
+	RET
+MoveGhost2XChecker      ENDP
+

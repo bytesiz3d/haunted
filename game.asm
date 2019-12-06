@@ -78,6 +78,17 @@ freezeFrameCount                EQU     60
 freezeCounter_Player0           DB      0
 freezeCounter_Player1           DB      0
 
+doubleSpeedFrameCount          EQU     255     
+doubleSpeedCounter_Ghost0      DB      255
+doubleSpeedCounter_Ghost1      DB      0
+
+
+;doubleSpeedIndicator			DB		2	;  = 2 no doubleGS , = 0 player 0 hit doubleGS, = 1 player 1 hit doubleGS 
+currentGhost					DB		0
+
+teleportIndicator				DB		2	;  = 2 no teleport , = 0 player 0 hit teleport, = 1 player 1 hit teleport 
+
+
 ghostDamage                     EQU     10
 ghostDelay                      EQU     15
 ghostCounter                    DB      ghostDelay
@@ -142,6 +153,39 @@ RCtoMapSprite   PROC     NEAR
         RET
 RCtoMapSprite   ENDP
 
+Teleport   PROC     NEAR
+
+		CMP		teleportIndicator,2
+		JE 		EndTeleport
+		
+		
+		CMP		teleportIndicator,1
+		
+		JE		teleport_player0
+		mov		teleportIndicator,2
+        mov     AX, Player_1		
+        CALL    RCtoMapSprite
+        CALL    DrawSprite
+		mov		newPosition,021DH
+        mov     SI, newPosition         ;Update position
+        mov     Player_1, SI    
+		jmp		EndTeleport
+		
+teleport_player0:
+		mov		teleportIndicator,2		
+		mov     AX, Player_0		
+        CALL    RCtoMapSprite
+        CALL    DrawSprite
+		mov		newPosition,0202H
+        mov     SI, newPosition         ;Update position
+        mov     Player_0, SI    
+		
+EndTeleport:
+        RET
+Teleport   ENDP
+
+
+
 ;;; ============================================================================================
 ;;; Ghost logic
 include ghost.asm
@@ -180,15 +224,20 @@ MOVE_GHOSTS_FRAME_START:
 
         mov     ghostCounter, ghostDelay
 
+		mov		currentGhost,0
         mov     AX, Player_0
         mov     DI, offset Ghost_00
         mov     BX, offset Sprite_Ghost_0
         CALL    MoveGhost
+		CALL	MoveGhost2XChecker
 
+		mov		currentGhost,1
         mov     AX, Player_1
         mov     DI, offset Ghost_10
         mov     BX, offset Sprite_Ghost_1
         CALL    MoveGhost
+
+		CALL	MoveGhost2XChecker
 
 ;;; ============================================================================================
 FRAME_START:
@@ -219,7 +268,8 @@ HIT_GHOST:
 PLAYER_0_HIT_GHOST:
         mov     DI, offset Ghost_00
         mov     BX, offset Sprite_Ghost_0
-        CALL    ShoveGhost
+        mov		currentGhost,0
+		CALL    ShoveGhost
 
         mov     DI, offset Ghost_00
         mov     BX, offset Sprite_Ghost_0
@@ -242,6 +292,7 @@ END_PLAYER_0_HIT_GHOST:
 PLAYER_1_HIT_GHOST:
         mov     DI, offset Ghost_10
         mov     BX, offset Sprite_Ghost_1
+		mov		currentGhost,1
         CALL    ShoveGhost
 
         mov     DI, offset Ghost_10
@@ -271,6 +322,21 @@ END_PLAYER_0_FREEZE:
         JZ      END_PLAYER_1_FREEZE
         DEC     freezeCounter_Player1
 END_PLAYER_1_FREEZE:   
+
+        ;; Reduce active double ghost speed timers
+        CMP     doubleSpeedCounter_Ghost0, 0           
+        JZ      END_GHOST_0_DOUBLESPEED
+        DEC     doubleSpeedCounter_Ghost0
+END_GHOST_0_DOUBLESPEED:   
+
+        CMP     doubleSpeedCounter_Ghost1, 0           
+        JZ      END_GHOST_1_DOUBLESPEED
+        DEC     doubleSpeedCounter_Ghost1
+END_GHOST_1_DOUBLESPEED:   
+
+
+
+
 
 ;;; ============================================================================================
 READ_INPUT:
@@ -408,11 +474,30 @@ FREEZE_Player0:
         MOV     freezeCounter_Player0, freezeFrameCount       ;Freeze player 0    
         JMP     CLEAR_PIECE
 
+
+HIT_DoubleGhostSpeed:
+		CMP     currentPlayer, 0
+        JE      DoubleSpeed_Ghost1
+		
+		MOV     doubleSpeedCounter_Ghost0, doubleSpeedFrameCount       ;Freeze player 0    
+        JMP     CLEAR_PIECE
+
+DoubleSpeed_Ghost1:
+        MOV     doubleSpeedCounter_Ghost1, doubleSpeedFrameCount           
+        JMP     CLEAR_PIECE
+
+
 HIT_BIG_COIN:
         MOV     SI, currentPlayer
         SHL     SI, 1                  ;Word
         ADD     Score_Base[SI], 10
         JMP     CLEAR_PIECE
+
+HIT_TELEPORT:
+		MOV		AX,currentPlayer
+		MOV		teleportIndicator,AL
+		JMP		CLEAR_PIECE
+
 
 ;;; ============================================================================================
 CLEAR_PIECE:
@@ -432,9 +517,9 @@ MOVE_PLAYER:
         mov     DI, currentPlayer 
         SHL     DI, 1                   ;Word   
         mov     Player_Base[DI], SI    
-
-        JMP      MOVE_GHOSTS_FRAME_START
-
+        
+		CALL	Teleport
+		JMP      MOVE_GHOSTS_FRAME_START
 ;;; ============================================================================================
 GAME_OVER:
         mov     AX, 3h          ;Return to text mode

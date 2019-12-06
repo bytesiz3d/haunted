@@ -27,6 +27,7 @@ DrawSprite     PROC    NEAR
 DRAW_LOOP:
         MOV     AH, 0CH
         LODSB                   ;Load [SI] into AL, increment SI
+		CALL	CheckDoubleSpeed
         INT     10H             ;Draw
 
         INC     CX
@@ -69,3 +70,20 @@ SKIP_CR_ADJUST:
         RET
 DrawMap         ENDP
 
+CheckDoubleSpeed         PROC    NEAR
+	
+	CMP AL,15
+	JNE	CheckDone
+	
+	CMP		currentGhost,1
+	JE		Ghost__1
+	
+	ADD AL,doubleSpeedCounter_Ghost0
+	
+Ghost__1:	
+
+	ADD AL,doubleSpeedCounter_Ghost1
+	
+	CheckDone:
+	RET
+CheckDoubleSpeed         ENDP
