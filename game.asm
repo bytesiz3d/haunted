@@ -79,7 +79,7 @@ freezeCounter_Player0           DB      0
 freezeCounter_Player1           DB      0
 
 doubleSpeedFrameCount          EQU     255     
-doubleSpeedCounter_Ghost0      DB      255
+doubleSpeedCounter_Ghost0      DB      0
 doubleSpeedCounter_Ghost1      DB      0
 
 
