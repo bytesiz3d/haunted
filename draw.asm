@@ -79,6 +79,7 @@ CheckDoubleSpeed         PROC    NEAR
 	JE		Ghost__1
 	
 	ADD AL,doubleSpeedCounter_Ghost0
+	JMP 	CheckDone
 	
 Ghost__1:	
 
