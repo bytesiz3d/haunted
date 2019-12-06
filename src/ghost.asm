@@ -150,19 +150,19 @@ ShoveGhost      PROC    NEAR
 ShoveGhost      ENDP
 
 ;;; ====================================================================
-MoveGhost2XChecker      PROC    NEAR
+MoveGhostX2Checker      PROC    NEAR
 
 	CMP	currentGhost,1
 	JE	Ghost___1
 	
-	CMP	doubleSpeedCounter_Ghost0,0
+	CMP	x2SpeedCounter_Ghost0,0
 	JE	NO2X
 	mov     AX, Player_0
         mov     DI, offset Ghost_00
         mov     BX, offset Sprite_Ghost_0
 	jmp     CALL_MOVE_GHOST
 Ghost___1:
-	CMP	doubleSpeedCounter_Ghost1,0
+	CMP	x2SpeedCounter_Ghost1,0
 	JE	NO2X
 	mov     AX, Player_1
         mov     DI, offset Ghost_10
@@ -173,7 +173,7 @@ CALL_MOVE_GHOST:
 	
 NO2X:
 	RET
-MoveGhost2XChecker      ENDP
+MoveGhostX2Checker      ENDP
 
 ;;; ============================================================================================
 CheckGhostCollision     PROC    FAR

@@ -7,11 +7,11 @@ CheckDoubleSpeed         PROC    NEAR
 	CMP	currentGhost,1
 	JE	Ghost__1
 	
-	ADD     AL,doubleSpeedCounter_Ghost0
+	ADD     AL,x2SpeedCounter_Ghost0
 	JMP 	CheckDone
 	
 Ghost__1:	
-	ADD     AL,doubleSpeedCounter_Ghost1
+	ADD     AL,x2SpeedCounter_Ghost1
 	
 CheckDone:
 	RET
@@ -64,14 +64,14 @@ END_PLAYER_0_FREEZE:
 END_PLAYER_1_FREEZE:   
 
         ;; Reduce active double ghost speed timers
-        CMP     doubleSpeedCounter_Ghost0, 0           
-        JZ      END_GHOST_0_DOUBLESPEED
-        DEC     doubleSpeedCounter_Ghost0
-END_GHOST_0_DOUBLESPEED:   
+        CMP     x2SpeedCounter_Ghost0, 0           
+        JZ      END_GHOST_0_X2_SPEED
+        DEC     x2SpeedCounter_Ghost0
+END_GHOST_0_X2_SPEED:   
 
-        CMP     doubleSpeedCounter_Ghost1, 0           
-        JZ      END_GHOST_1_DOUBLESPEED
-        DEC     doubleSpeedCounter_Ghost1
-END_GHOST_1_DOUBLESPEED:   
+        CMP     x2SpeedCounter_Ghost1, 0           
+        JZ      END_GHOST_1_X2_SPEED
+        DEC     x2SpeedCounter_Ghost1
+END_GHOST_1_X2_SPEED:   
         RET
 ReduceTimers    ENDP

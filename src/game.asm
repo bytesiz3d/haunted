@@ -60,9 +60,14 @@ MAIN    PROC    FAR
         mov     BX, 0105H
         INT     10H   
 
+        ;; Teleport sprite
         LEA     DI, Sprite_Teleport
         LEA     SI, tpFilename
+        CALL    LoadSprite
 
+        ;; Double ghost speed sprite
+        LEA     DI, Sprite_x2_Speed
+        LEA     SI, x2Filename
         CALL    LoadSprite
        
         CALL    Haunted_MainMenu
@@ -88,7 +93,7 @@ MOVE_GHOSTS_FRAME_START:
         mov     DI, offset Ghost_00
         mov     BX, offset Sprite_Ghost_0
         CALL    MoveGhost
-	CALL	MoveGhost2XChecker
+	CALL	MoveGhostX2Checker
 
 	mov	currentGhost,1
         mov     AX, Player_1
@@ -96,7 +101,7 @@ MOVE_GHOSTS_FRAME_START:
         mov     BX, offset Sprite_Ghost_1
         CALL    MoveGhost
 
-	CALL	MoveGhost2XChecker
+	CALL	MoveGhostX2Checker
 
 ;;; ============================================================================================
 FRAME_START:
@@ -242,8 +247,8 @@ TEST_NEW_POSITION:
         cmp     mapValue, SPRITE_ID_TELEPORT
         je      HIT_TELEPORT
 
-        cmp     mapValue, SPRITE_ID_DOUBLE_GHOST_SPEED
-        je      HIT_DOUBLE_GHOST_SPEED
+        cmp     mapValue, SPRITE_ID_X2_SPEED
+        je      HIT_X2_SPEED
 
         JMP     MOVE_PLAYER
 
@@ -272,15 +277,15 @@ FREEZE_Player0:
 
 
 ;;; ______________________________________________
-HIT_DOUBLE_GHOST_SPEED:
+HIT_x2_SPEED:
 	CMP     currentPlayer, 0
-        JE      DoubleSpeed_Ghost1
+        JE      x2Speed_Ghost1
 		
-	MOV     doubleSpeedCounter_Ghost0, doubleSpeedFrameCount       ;Freeze player 0    
+	MOV     x2SpeedCounter_Ghost0, x2SpeedFrameCount       ;Freeze player 0    
         JMP     CLEAR_PIECE
 
-DoubleSpeed_Ghost1:
-        MOV     doubleSpeedCounter_Ghost1, doubleSpeedFrameCount           
+X2Speed_Ghost1:
+        MOV     x2SpeedCounter_Ghost1, x2SpeedFrameCount           
         JMP     CLEAR_PIECE
 
 

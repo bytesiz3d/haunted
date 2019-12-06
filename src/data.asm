@@ -1,5 +1,6 @@
 ;;; LoadSprite test
 tpFilename                      DB      "../bin/teleport", 0
+x2Filename                      DB      "../bin/x2speed", 0
 ;;; Scoreboard variables
 SB_string                       DB      5 dup('$') 
 SB_ext                          DB      "'s score: " 
@@ -73,12 +74,12 @@ freezeFrameCount                EQU     60
 freezeCounter_Player0           DB      0
 freezeCounter_Player1           DB      0
 
-doubleSpeedFrameCount           EQU     255     
-doubleSpeedCounter_Ghost0       DB      0
-doubleSpeedCounter_Ghost1       DB      0
+x2SpeedFrameCount               EQU     255     
+x2SpeedCounter_Ghost0           DB      0
+x2SpeedCounter_Ghost1           DB      0
 
 
-;doubleSpeedIndicator			DB		2	;  = 2 no doubleGS , = 0 player 0 hit doubleGS, = 1 player 1 hit doubleGS 
+;x2SpeedIndicator               DB	2	;  = 2 no doubleGS , = 0 player 0 hit doubleGS, = 1 player 1 hit doubleGS 
 currentGhost                    DB	0
 
 teleportIndicator               DB	2	; = 2 no teleport , = 0 player 0 hit teleport, = 1 player 1 hit teleport 
