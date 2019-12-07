@@ -90,8 +90,16 @@ MAIN    PROC    FAR
 		
 		;; in AH: Row, AL: Column
 	
-		mov		AH,DL
+		mov		bx,cx
+		mov		cl,5
+		mov		ch,0
+		shr		bx,cl
+		shr		dx,cl
+		
+		mov		AH,bL
 		mov		AL,CL
+		
+		
 		
 		CALL RCtoMapIndex
 		
