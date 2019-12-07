@@ -3,7 +3,7 @@
         ;; in BX: Ghost sprite offset
 MoveGhost       PROC    NEAR
         			
-		mov     mg_ghostOffset, DI
+	mov     mg_ghostOffset, DI
         mov     mg_ghostSpriteOffset, BX
         
         ;; Calculate the pair
@@ -183,25 +183,38 @@ CheckGhostCollision     PROC    FAR
         ;; Player 0:
         mov     AX, Player_0
         cmp     AX, Ghost_00
-        JE      PLAYER_0_HIT_GHOST
+        JE      PLAYER_0_HIT_GHOST_00
         cmp     AX, Ghost_10
-        JE      PLAYER_0_HIT_GHOST
+        JE      PLAYER_0_HIT_GHOST_10
         JMP     END_PLAYER_0_HIT_GHOST
 
-PLAYER_0_HIT_GHOST:
+PLAYER_0_HIT_GHOST_00:
+        LEA     SI, Ghost_00
+        mov     cgc_ghostPositionOffset, SI
+        LEA     SI, Sprite_Ghost_0
+        mov     cgc_ghostSpriteOffset, SI
+
+        JMP     PLAYER_0_HIT_GHOST
+PLAYER_0_HIT_GHOST_10:
+        LEA     SI, Ghost_10
+        mov     cgc_ghostPositionOffset, SI
+        LEA     SI, Sprite_Ghost_1
+        mov     cgc_ghostSpriteOffset, SI
+
+PLAYER_0_HIT_GHOST:     
         mov	currentGhost,0
 
-        mov     DI, offset Ghost_00
-        mov     BX, offset Sprite_Ghost_0
+        mov     DI, cgc_ghostPositionOffset 
+        mov     BX, cgc_ghostSpriteOffset
 	CALL    ShoveGhost
 
-        mov     DI, offset Ghost_00
-        mov     BX, offset Sprite_Ghost_0
-        CALL    ShoveGhost
+        mov     DI, cgc_ghostPositionOffset 
+        mov     BX, cgc_ghostSpriteOffset
+	CALL    ShoveGhost
 
-        mov     DI, offset Ghost_00
-        mov     BX, offset Sprite_Ghost_0
-        CALL    ShoveGhost
+        mov     DI, cgc_ghostPositionOffset 
+        mov     BX, cgc_ghostSpriteOffset
+	CALL    ShoveGhost
 
         SUB     Score_Player_0, ghostDamage
         CMP     Score_Player_0, 0
@@ -212,25 +225,38 @@ END_PLAYER_0_HIT_GHOST:
         ;; Player 1:
         mov     AX, Player_1
         cmp     AX, Ghost_00
-        JE      PLAYER_1_HIT_GHOST
+        JE      PLAYER_1_HIT_GHOST_00
         cmp     AX, Ghost_10
-        JE      PLAYER_1_HIT_GHOST
+        JE      PLAYER_1_HIT_GHOST_10
         JMP     END_PLAYER_1_HIT_GHOST
 
-PLAYER_1_HIT_GHOST:
-	mov	currentGhost,1
+PLAYER_1_HIT_GHOST_00:
+        LEA     SI, Ghost_00
+        mov     cgc_ghostPositionOffset, SI
+        LEA     SI, Sprite_Ghost_0
+        mov     cgc_ghostSpriteOffset, SI
 
-        mov     DI, offset Ghost_10
-        mov     BX, offset Sprite_Ghost_1
-        CALL    ShoveGhost
+        JMP     PLAYER_1_HIT_GHOST
+PLAYER_1_HIT_GHOST_10:
+        LEA     SI, Ghost_10
+        mov     cgc_ghostPositionOffset, SI
+        LEA     SI, Sprite_Ghost_1
+        mov     cgc_ghostSpriteOffset, SI
 
-        mov     DI, offset Ghost_10
-        mov     BX, offset Sprite_Ghost_1
-        CALL    ShoveGhost
+PLAYER_1_HIT_GHOST:     
+        mov	currentGhost,1
 
-        mov     DI, offset Ghost_10
-        mov     BX, offset Sprite_Ghost_1
-        CALL    ShoveGhost
+        mov     DI, cgc_ghostPositionOffset 
+        mov     BX, cgc_ghostSpriteOffset
+	CALL    ShoveGhost
+
+        mov     DI, cgc_ghostPositionOffset 
+        mov     BX, cgc_ghostSpriteOffset
+	CALL    ShoveGhost
+
+        mov     DI, cgc_ghostPositionOffset 
+        mov     BX, cgc_ghostSpriteOffset
+	CALL    ShoveGhost
 
         SUB     Score_Player_1, ghostDamage
         CMP     Score_Player_1, 0

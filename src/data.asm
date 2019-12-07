@@ -1,16 +1,20 @@
-;;; LoadSprite test
+;;; Binary files 
 tpFilename                      DB      "../bin/teleport", 0
 x2Filename                      DB      "../bin/x2speed", 0
+lv1Filename                     DB      "../bin/lv1", 0
+
 ;;; Scoreboard variables
 SB_string                       DB      5 dup('$') 
 SB_ext                          DB      "'s score: " 
 SB_line                         DB      128 dup('_')  ;;for score & notification
 SB_space                        DB      128(32)       ;;for score & notification
+
 ;;; Notification bar
 NB_msg1				DB	31 , "Level 1: Press ESC to Exit game"
 NB_msg2				DB	31 , "Level 2: Press ESC to Exit game"
 NB_msg3				DB	53 , "GAME OVER Press Enter to go to Level 2 or ESC to Exit"
 NB_msg4				DB	27 , "GAME OVER Press ESC to Exit"
+
 ;;; Haunted_MainMenu variables
 HauntedWidth                    EQU     320
 HauntedHeight                   EQU     89
@@ -46,6 +50,10 @@ mg_Step0                        DW      ?
 mg_Step1                        DW      ?
 mg_ghostOffset                  DW      ?
 mg_ghostSpriteOffset            DW      ?
+
+;;; CheckGhostCollision variables
+cgc_ghostPositionOffset         DW      ?
+cgc_ghostSpriteOffset           DW      ?
 
 ;;; Sprites
 include sprites.asm

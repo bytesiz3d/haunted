@@ -1,6 +1,10 @@
 # Created by https://www.gitignore.io/api/vim,emacs,assembler
 # Edit at https://www.gitignore.io/?templates=vim,emacs,assembler
 
+### 3abkoor ###
+# Sprite generating python script
+*.py
+
 ### Assembler ###
 *.exe
 *.o

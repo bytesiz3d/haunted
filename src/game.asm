@@ -9,10 +9,11 @@ include data.asm
 
 ;;; ============================================================================================
         .CODE
-;;; Main menu
+;;; Main menu and Game utilities
 include menu.asm
         ;; Haunted_MainMenu
-        ;; LoadSprites
+        ;; Open, Read, CloseFile
+        ;; LoadBuffer
         
 ;;; ============================================================================================
 ;;; Scoreboard
@@ -50,7 +51,7 @@ include ghost.asm
         ;; in BX: Ghost sprite offset
         ;; MoveGhost
         ;; ShoveGhost
-        ;; MoveGhost2XChecker
+        ;; MoveGhostX2Checker
         ;; CheckGhostCollision
 
 ;;; ============================================================================================
@@ -60,23 +61,35 @@ MAIN    PROC    FAR
         mov     DS, AX
         mov     ES, AX
 
-        ;; Clear the screen
-        mov     AX, 4F02H
-        mov     BX, 0105H
-        INT     10H   
-
         ;; Teleport sprite
         LEA     DI, Sprite_Teleport
         LEA     SI, tpFilename
-        CALL    LoadSprite
+        MOV     CX, SPRITE_SIZE
+        CALL    LoadBuffer
 
         ;; Double ghost speed sprite
         LEA     DI, Sprite_x2_Speed
         LEA     SI, x2Filename
-        CALL    LoadSprite
-       
+        MOV     CX, SPRITE_SIZE
+        CALL    LoadBuffer
+
+MAIN_MENU:      
+        ;; Clear the screen
+        mov     AX, 4F02H
+        mov     BX, 0105H
+        INT     10H   
         CALL    Haunted_MainMenu
+
+        ;; New Game
+        CALL    ResetGame
+        
+        ;; Load map
+        LEA     DI, levelMap
+        LEA     SI, lv1Filename
+        MOV     CX, GRID_COLUMNS*GRID_ROWS 
+        CALL    LoadBuffer
         CALL    DrawMap         
+
 	MOV	DI, OFFSET NB_msg1+1
 	MOV	CL, BYTE PTR NB_msg1
 	MOV	CH, 0
@@ -154,7 +167,7 @@ MOVED?:
 
         CMP     AH, 01H
         JNZ     SET_PLAYER
-        JMP     EXIT
+        JMP     MAIN_MENU 
 
 SET_PLAYER:     
         CMP     AH, 40H
@@ -346,8 +359,6 @@ MOVE_PLAYER:
 	JMP     MOVE_GHOSTS_FRAME_START
 
 ;;; ============================================================================================
-
-	
 GAME_OVER:
 	MOV	DI, OFFSET NB_msg4+1
 	MOV	CL, BYTE PTR NB_msg4

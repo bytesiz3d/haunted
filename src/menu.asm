@@ -8,7 +8,7 @@
 ;; NewGame                 DB      0, 0, 0, "NEW GAME", 0, 0, 0
 ;; Quit                    DB      0, 0, 0, "QUIT", 0, 0, 0                 
 ;; playername              DB      'Player$', ' Name: $'                 
-;; ;;; ===============================================================================
+;;; ===============================================================================
 ;;; File handling
 OpenFile        PROC    NEAR
         ;; Open file
@@ -45,7 +45,8 @@ CloseFile       ENDP
 ;;; ===============================================================================
         ;; in SI: Filename offset, (null-terminated)
         ;; in DI: Destination offset
-LoadSprite      PROC    NEAR
+        ;; in CX: Number of bytes to read
+LoadBuffer      PROC    NEAR
         ;; Open File
         MOV     AH, 3Dh
         MOV     AL, 0
@@ -56,7 +57,7 @@ LoadSprite      PROC    NEAR
         ;; Read data
         MOV     AH, 3Fh
         MOV     BX, [fileHandle]
-        MOV     CX, SPRITE_SIZE
+        ;; MOV     CX, SPRITE_SIZE
         MOV     DX, DI
         INT     21h
 
@@ -66,7 +67,34 @@ LoadSprite      PROC    NEAR
         INT     21h       
 
         RET
-LoadSprite      ENDP
+LoadBuffer      ENDP
+
+;;; ===============================================================================
+        ;; in SI: Filename offset, (null-terminated)
+        ;; in DI: Destination offset
+        ;; in CX: Number of bytes to read
+SaveBuffer      PROC    NEAR
+        ;; Open File
+        MOV     AH, 3Dh
+        MOV     AL, 0
+        MOV     DX, SI
+        INT     21h
+        MOV     [fileHandle], AX
+
+        ;; Read data
+        MOV     AH, 3Fh
+        MOV     BX, [fileHandle]
+        ;; MOV     CX, SPRITE_SIZE
+        MOV     DX, DI
+        INT     21h
+
+        ;; Close File
+        MOV     AH, 3Eh
+        MOV     BX, [fileHandle]
+        INT     21h       
+
+        RET
+SaveBuffer      ENDP
 
 ;;; ===============================================================================
 Haunted_MainMenu        PROC    NEAR
@@ -222,6 +250,29 @@ StartGame:
         int     21h 
         RET
 Haunted_MainMenu        ENDP
+        
+;;; ===============================================================================
+        ;; Reset all game state variables
+ResetGame       PROC    NEAR
+        
+        mov     Player_0, 0202h
+        mov     Player_1, 021Dh
 
-      
+        mov     Ghost_00, 1002h
+        mov     Ghost_10, 101Dh
+
+        mov     Score_Player_0, 0000h
+        mov     Score_Player_1, 0000h
+        
+        mov     freezeCounter_Player0, 0
+        mov     freezeCounter_Player1, 0
+
+        mov     x2SpeedCounter_Ghost0, 0
+        mov     x2SpeedCounter_Ghost1, 0
+
+        mov     ghostCounter, ghostDelay
+        mov     totalFrameCount, 30 * 60
+
+        RET
+ResetGame       ENDP 
         
