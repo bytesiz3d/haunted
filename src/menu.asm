@@ -70,39 +70,12 @@ LoadBuffer      PROC    NEAR
 LoadBuffer      ENDP
 
 ;;; ===============================================================================
-        ;; in SI: Filename offset, (null-terminated)
-        ;; in DI: Destination offset
-        ;; in CX: Number of bytes to read
-SaveBuffer      PROC    NEAR
-        ;; Open File
-        MOV     AH, 3Dh
-        MOV     AL, 0
-        MOV     DX, SI
-        INT     21h
-        MOV     [fileHandle], AX
-
-        ;; Read data
-        MOV     AH, 3Fh
-        MOV     BX, [fileHandle]
-        ;; MOV     CX, SPRITE_SIZE
-        MOV     DX, DI
-        INT     21h
-
-        ;; Close File
-        MOV     AH, 3Eh
-        MOV     BX, [fileHandle]
-        INT     21h       
-
-        RET
-SaveBuffer      ENDP
-
-;;; ===============================================================================
 Haunted_MainMenu        PROC    NEAR
         CALL    OpenFile
         CALL    ReadData
-        LEA     BX, HauntedData ; BL contains index at the current drawn pixel
-        MOV     CX, 320              ;column                                    
-        MOV     DX, 70 ;row                                                     
+        LEA     BX, HauntedData ;BL contains index at the current drawn pixel
+        MOV     CX, 320         ;column                                    
+        MOV     DX, 200         ;row                                                     
         MOV     AH, 0ch                                                         
         
 drawLoop:                                                                  
@@ -118,7 +91,7 @@ cont:
         
         MOV     CX, 320                                                       
         INC     DX                                                             
-        CMP     DX, HauntedHeight+70                                           
+        CMP     DX, HauntedHeight+200                                           
         JNE     drawLoop                                                               
         
         call    CloseFile                                                     

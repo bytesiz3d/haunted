@@ -58,19 +58,26 @@ cgc_ghostSpriteOffset           DW      ?
 ;;; Sprites
 include sprites.asm
         
+;;; Victory messages
+Player_0_WIN_MESSAGE            DB      "Player 1 wins!$"
+Player_1_WIN_MESSAGE            DB      "Player 2 wins!$"
+
 ;;; Entity positions (AH: Row, AL: Column)
 newPosition                     DW      ?
 currentPlayer                   DW      ?      
 Player_Base                     LABEL   WORD
 Player_0                        DW      0202h
 Player_1                        DW      021Dh
-Player_0_WIN_MESSAGE            DB      "Player 0 wins!$"
-Player_1_WIN_MESSAGE            DB      "Player 1 wins!$"
         
 Ghost_PER_PLAYER                EQU     1
 Ghost_Base                      LABEL   WORD
 Ghost_00                        DW      1002h
 Ghost_10                        DW      101Dh
+
+;;; Ghost controls
+ghostDelay                      EQU     150
+ghostDamage                     EQU     10
+ghostCounter                    DB      ghostDelay
 
 ;;; Player scores
 Score_Base                      LABEL   BYTE
@@ -78,8 +85,9 @@ Score_Player_0                  DW      0000h
 Score_Player_1                  DW      0000h
 Score_TARGET                    EQU     24
 
-;;; Level and Game State map
+;;; Level map and Game State
 include map.asm
+totalFrameCount                 DW      30 * 60
 mapValue                        DB      ?
 
 freezeFrameCount                EQU     60      
@@ -90,15 +98,9 @@ x2SpeedFrameCount               EQU     255
 x2SpeedCounter_Ghost0           DB      0
 x2SpeedCounter_Ghost1           DB      0
 
-
 ;x2SpeedIndicator               DB	2	;  = 2 no doubleGS , = 0 player 0 hit doubleGS, = 1 player 1 hit doubleGS 
 currentGhost                    DB	0
 
 teleportIndicator               DB	2	; = 2 no teleport , = 0 player 0 hit teleport, = 1 player 1 hit teleport 
 
 
-ghostDamage                     EQU     10
-ghostDelay                      EQU     150
-ghostCounter                    DB      ghostDelay
-
-totalFrameCount                 DW      30 * 60

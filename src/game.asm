@@ -123,7 +123,6 @@ MOVE_GHOSTS_FRAME_START:
         mov     DI, offset Ghost_10
         mov     BX, offset Sprite_Ghost_1
         CALL    MoveGhost
-
 	CALL	MoveGhostX2Checker
 
 ;;; ============================================================================================
@@ -375,9 +374,11 @@ GAME_OVER:
 
         mov     AH, 0
         INT     16h
-        cmp     AH, 01h         ;Wait for an ENTER keypress
+        cmp     AH, 01h         ;Wait for an ESC keypress
         JNE     GAME_OVER
         
+        JMP     MAIN_MENU
+
 EXIT:   
         mov     AX, 3h          ;Return to text mode
         INT     10h
