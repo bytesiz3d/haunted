@@ -29,13 +29,23 @@ include NB.asm
 ;;; ============================================================================================
 ;;; Draw procedures and utility functions
 include draw.asm
+        ;; DrawMap
         ;; RCtoMapIndex
         ;; RCtoMapSprite
+
         ;; in AX: Square_Row, Square_Column
         ;; in SI: Sprite offset
         ;; DrawSprite
-        ;; DrawMap
 
+        ;; in CX: X position
+        ;; in DX: Y position
+        ;; in SI: Sprite offset
+        ;; DrawSpriteXY
+
+include animate.asm
+        ;; in AX: New Position (R, C)
+        ;; in BX: Old Position (R, C)
+        ;; AnimatePlayer
 ;;; ============================================================================================
 ;;; Powerup utilities
 include power.asm
@@ -344,16 +354,22 @@ CLEAR_PIECE:
 
 
 MOVE_PLAYER:    
+        ;; mov     SI, currentPlayer
+        ;; SHL     SI, 1                   ;Word   
+        ;; mov     AX, Player_Base[SI]     ;Erase the player and redraw the cell
+        ;; CALL    RCtoMapSprite
+        ;; CALL    DrawSprite
+
+        ;; mov     SI, newPosition         ;Update position
+        ;; mov     DI, currentPlayer 
+        ;; SHL     DI, 1                   ;Word   
+        ;; mov     Player_Base[DI], SI    
+
         mov     SI, currentPlayer
         SHL     SI, 1                   ;Word   
-        mov     AX, Player_Base[SI]     ;Erase the player and redraw the cell
-        CALL    RCtoMapSprite
-        CALL    DrawSprite
-
-        mov     SI, newPosition         ;Update position
-        mov     DI, currentPlayer 
-        SHL     DI, 1                   ;Word   
-        mov     Player_Base[DI], SI    
+        mov     BX, Player_Base[SI]     ;Previous position
+        mov     AX, newPosition
+        CALL    AnimatePlayer
         
 	CALL	Teleport
 	JMP     MOVE_GHOSTS_FRAME_START

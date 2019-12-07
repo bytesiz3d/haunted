@@ -17,6 +17,13 @@ NB_msg2                         DB	31, "Level 2: Press ESC to Exit game"
 NB_msg3                         DB	53, "GAME OVER Press Enter to go to Level 2 or ESC to Exit"
 NB_msg4                         DB	27, "GAME OVER Press ESC to Exit"
 
+;;; AnimatePlayer variables
+ap_newPosition                  DW      ?
+ap_oldPosition                  DW      ?
+ap_currentPosition              DD      ?
+ap_Step_X                       DW      ?
+ap_Step_Y                       DW      ?
+
 ;;; Haunted_MainMenu variables
 HauntedWidth                    EQU     320
 HauntedHeight                   EQU     89
@@ -29,10 +36,11 @@ newGame                         DB      0, 0, 0, "NEW GAME", 0, 0, 0
 quit                            DB      0, 0, 0, "QUIT", 0, 0, 0                 
 playerName                      DB      "Player$", " Name: $"                 
 choose_msg                      DB      18, "Choose Your level:"
-level1_msg              	      DB      14, "Level 1 ==> F1"   
-level2_msg              	      DB      14, "Level 2 ==> F2"             
+level1_msg              	DB      14, "Level 1 ==> F1"   
+level2_msg              	DB      14, "Level 2 ==> F2"             
                   
 ;; DrawSprite variables
+Square_X                        LABEL   WORD ;DrawSpriteXY
 Square_C                        DB      ?
 Square_R                        DB      ?
 Square_XF                       DW      ?
