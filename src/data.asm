@@ -2,8 +2,8 @@
 tpFilename                      DB      "../bin/teleport", 0
 x2Filename                      DB      "../bin/x2speed", 0
 lv1Filename                     DB      "../bin/lv1", 0
-lv2Filename                     DB      "../bin/lv2", 0              
-lvChosen                        DW      ?   
+lv2Filename             	DB      "../bin/lv2", 0              
+lvChosen                	DW      ?   
 
 ;;; Scoreboard variables
 SB_string                       DB      5 dup('$') 
@@ -12,10 +12,10 @@ SB_line                         DB      128 dup('_')  ;;for score & notification
 SB_space                        DB      128(32)       ;;for score & notification
 
 ;;; Notification bar
-NB_msg1                         DB	31, "Level 1: Press ESC to Exit game"
-NB_msg2                         DB	31, "Level 2: Press ESC to Exit game"
-NB_msg3                         DB	53, "GAME OVER Press Enter to go to Level 2 or ESC to Exit"
-NB_msg4                         DB	27, "GAME OVER Press ESC to Exit"
+NB_msg1				DB	31 , "Level 1: Press ESC to Exit game"
+NB_msg2				DB	31 , "Level 2: Press ESC to Exit game"
+NB_msg3				DB	53 , "GAME OVER Press Enter to go to Level 2 or ESC to Exit"
+NB_msg4				DB	27 , "GAME OVER Press ESC to Exit"
 
 ;;; Haunted_MainMenu variables
 HauntedWidth                    EQU     320
@@ -28,9 +28,9 @@ p2Name                          DB      20, ?, 20 dup("$")
 newGame                         DB      0, 0, 0, "NEW GAME", 0, 0, 0
 quit                            DB      0, 0, 0, "QUIT", 0, 0, 0                 
 playerName                      DB      "Player$", " Name: $"                 
-choose_msg                      DB      18, "Choose Your level:"
-level1_msg              	      DB      14, "Level 1 ==> F1"   
-level2_msg              	      DB      14, "Level 2 ==> F2"             
+choose_msg              	DB      18,"Choose Your level:"
+level1_msg              	DB      14,"Level 1 ==> F1"   
+level2_msg              	DB      14,"Level 2 ==> F2"             
                   
 ;; DrawSprite variables
 Square_C                        DB      ?
@@ -80,7 +80,7 @@ Ghost_00                        DW      1002h
 Ghost_10                        DW      101Dh
 
 ;;; Ghost controls
-ghostDelay                      EQU     30
+ghostDelay                      EQU     150
 ghostDamage                     EQU     10
 ghostCounter                    DB      ghostDelay
 
@@ -103,8 +103,9 @@ x2SpeedFrameCount               EQU     255
 x2SpeedCounter_Ghost0           DB      0
 x2SpeedCounter_Ghost1           DB      0
 
-teleportIndicator               DB	2	; = 2 no teleport , = 0 player 0 hit teleport, = 1 player 1 hit teleport 
 ;x2SpeedIndicator               DB	2	;  = 2 no doubleGS , = 0 player 0 hit doubleGS, = 1 player 1 hit doubleGS 
 currentGhost                    DB	0
+
+teleportIndicator               DB	2	; = 2 no teleport , = 0 player 0 hit teleport, = 1 player 1 hit teleport 
 
 

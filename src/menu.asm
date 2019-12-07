@@ -103,7 +103,7 @@ cont:
         call    CloseFile                                                     
         call    CloseFile                                                     
         
-        MOV     CH, 0DH                                                        
+        MOV     CH, 0CH                                                        
         MOV     CL, 0FH                                                        
         
 CHANGECHOSEN:                                                      
@@ -171,7 +171,7 @@ WaitTillChoose:
         JMP     WaitTillChoose                                                 
         
 Chosen:                                                            
-        CMP     CL, 0DH                                                        
+        CMP     CL, 0CH                                                        
         JE      StartGame                                                       
         mov     AX, 3h          ;Return to text mode
         INT     10h
@@ -183,7 +183,7 @@ StartGame:
         MOV     CH, 0
         MOV     AL, 0
         MOV     BX, 0000H
-        MOV     BP, OFFSET SB_space
+	    MOV     BP, OFFSET SB_space
         MOV     AH, 13H   
         MOV     CL, 120 
         MOV     DX, 1E1DH
@@ -191,49 +191,52 @@ StartGame:
         
         MOV     CH, 0
         MOV     AL, 0
-        MOV     BX, 000DH
-        MOV     BP, OFFSET choose_msg+1
+        MOV     BX, 000CH
+	    MOV     BP, OFFSET choose_msg+1
         MOV     AH, 13H   
         MOV     CL, BYTE PTR choose_msg 
         MOV     DX, 2337H
         INT     10H  
         
         MOV     BX, 00FH
-        MOV     BP, OFFSET level1_msg+1
+	    MOV     BP, OFFSET level1_msg+1
         MOV     AH, 13H   
         MOV     CL, BYTE PTR level1_msg 
         MOV     DX, 2539H
         INT     10H     
         
-        MOV     BP, OFFSET level2_msg+1
+	    MOV     BP, OFFSET level2_msg+1
         MOV     AH, 13H   
         MOV     CL, BYTE PTR level2_msg 
         MOV     DX, 2639H
         INT     10H     
         
-IS_CHOSEN:  
+ischosen:  
+        
         
         MOV     AH, 0                                                           
         INT     16h                                                            
         CMP     AH, 3BH                                                         
-        JNE     IS_F2
+        JNE     isf2
              
         MOV     SI, OFFSET lv1Filename
         MOV     WORD PTR lvChosen, SI
-        jmp     PLAYERS_NAMES
-IS_F2:        
+        jmp     playersnames
+isf2:        
         CMP     AH, 3CH                                                         
-        jNE     IS_CHOSEN
+        jNE     ischosen
         
         MOV     SI, OFFSET lv2Filename
         MOV     WORD PTR lvChosen, SI
         
-PLAYERS_NAMES:  
+                                                            
+        
+playersnames:  
 
         MOV     CH, 0
         MOV     AL, 0
         MOV     BX, 0000H
-        MOV     BP, OFFSET SB_space
+	    MOV     BP, OFFSET SB_space
         MOV     AH, 13H   
         MOV     CL, 20 
         MOV     DX, 2337H
