@@ -21,6 +21,11 @@ include score.asm
         ;; InttoString
         
 ;;; ============================================================================================
+;;; Notification bar
+include NB.asm
+        ;; NotificationBar
+        
+;;; ============================================================================================
 ;;; Draw procedures and utility functions
 include draw.asm
         ;; RCtoMapIndex
@@ -72,6 +77,11 @@ MAIN    PROC    FAR
        
         CALL    Haunted_MainMenu
         CALL    DrawMap         
+	MOV	DI, OFFSET NB_msg1+1
+	MOV	CL, BYTE PTR NB_msg1
+	MOV	CH, 0
+	MOV	SI, CX
+	CALL	NotificationBar
 
         mDrawEntities
         
@@ -115,7 +125,7 @@ FRAME_START:
         
         DEC     totalFrameCount
         JNZ     HIT_GHOST?
-        JMP     EXIT
+        JMP     GAME_OVER
 
 HIT_GHOST?:     
         call    CheckGhostCollision
@@ -336,16 +346,25 @@ MOVE_PLAYER:
 	JMP     MOVE_GHOSTS_FRAME_START
 
 ;;; ============================================================================================
-GAME_OVER:
-        mov     AX, 3h          ;Return to text mode
-        INT     10h
 
-        mov     AH, 9h
-        INT     21h
+	
+GAME_OVER:
+	MOV	DI, OFFSET NB_msg4+1
+	MOV	CL, BYTE PTR NB_msg4
+	MOV	CH, 0
+	MOV	SI, CX
+	CALL	NotificationBar
+
+	
+       ; mov     AX, 3h          ;Return to text mode
+       ; INT     10h
+
+       ; mov     AH, 9h
+       ; INT     21h
 
         mov     AH, 0
         INT     16h
-        cmp     AH, 1Ch         ;Wait for an ENTER keypress
+        cmp     AH, 01h         ;Wait for an ENTER keypress
         JNE     GAME_OVER
         
 EXIT:   

@@ -39,10 +39,11 @@ IntToString     ENDP
 ;;;Print line above score board then print players and their score
 ScoreBoard      PROC    NEAR                                                                                   
         MOV     AL, 0
-        MOV     BP, OFFSET SB_LINE
+        MOV     BX, 000FH
+	MOV     BP, OFFSET SB_LINE
         MOV     AH, 13H   
         MOV     CL, 80H 
-        MOV     DX, 2C00H
+        MOV     DX, 2A00H
         INT     10H 
         
         MOV     AL, 0
@@ -50,7 +51,7 @@ ScoreBoard      PROC    NEAR
         MOV     BP, OFFSET p1Name+2
         MOV     AH, 13H   
         MOV     CL, p1Name+1 
-        MOV     DX, 2E01H
+        MOV     DX, 2C01H
         INT     10H 
         
         MOV     BP, OFFSET SB_EXT
@@ -72,7 +73,7 @@ ScoreBoard      PROC    NEAR
         MOV     BX, 000CH
         MOV     BP, OFFSET p2Name+2   
         MOV     CL, p2Name+1
-        MOV     DX, 2E55H
+        MOV     DX, 2C55H
         INT     10H
         
         MOV     BP, OFFSET SB_EXT
@@ -91,6 +92,13 @@ ScoreBoard      PROC    NEAR
         MOV     DI, DX
         call    IntToString 
         
+	MOV     BX, 0000H         
+        MOV     AH, 13H
+        MOV     BP, OFFSET SB_SPACE
+        MOV     DX, 2C39H
+        MOV     CX, 5
+        INT     10H
+
         ;; Divide total frame count by (30 FPS)
         ;; Print in the scoreboard
         MOV     AX, totalFrameCount
@@ -98,8 +106,8 @@ ScoreBoard      PROC    NEAR
         MOV     BX, 30
         DIV     BX
         MOV     BX, AX
-        
-        MOV     DX, 2E39H
+       	
+	MOV     DX, 2C39H
         MOV     DI, DX
         call    IntToString
 

@@ -4,9 +4,13 @@ x2Filename                      DB      "../bin/x2speed", 0
 ;;; Scoreboard variables
 SB_string                       DB      5 dup('$') 
 SB_ext                          DB      "'s score: " 
-SB_line                         DB      128 dup('_') 
-SB_space                        DB      5(32)
-
+SB_line                         DB      128 dup('_')  ;;for score & notification
+SB_space                        DB      128(32)       ;;for score & notification
+;;; Notification bar
+NB_msg1				DB	31 , "Level 1: Press ESC to Exit game"
+NB_msg2				DB	31 , "Level 2: Press ESC to Exit game"
+NB_msg3				DB	53 , "GAME OVER Press Enter to go to Level 2 or ESC to Exit"
+NB_msg4				DB	27 , "GAME OVER Press ESC to Exit"
 ;;; Haunted_MainMenu variables
 HauntedWidth                    EQU     320
 HauntedHeight                   EQU     89
