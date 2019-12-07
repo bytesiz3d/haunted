@@ -74,20 +74,42 @@ MAIN    PROC    FAR
       
         CALL    DrawMap         
 
-		
-		
-		
-		
-		
+			mov ax,0
+			int 33h 
+			
+			
+
+			mov ax, 7
+			mov cx,0 ; min pos
+			mov dx,1024 ; max pos
+			int 33h
+			;And height can be set:
+			
+			mov ax, 8
+			mov cx,0
+			mov dx,768
+			int 33h
+
 		
 		Get_mouse_info:  ;----> CX : X - DX : Y - BX = 1 left btn pressed , = 2 rigtt , = 3 both
-		mov     AX, 3 
-        mov     BX, 0
-        INT     33H
+			
+
+			
+			mov ax,3
+			MPos:int 33h
 		
-		CMP		BX,1
-		JNE		Get_mouse_info
+		    CMP		BX,0
+			JE		MPos
+					
+			
+			mov al,5 ;Pixel color				;FOR TESTING
+			mov ah,0ch ;Draw Pixel Command      ;FOR TESTING
+			int 10h                             ;FOR TESTING
 		
+			mov ax,1							;THIS SHOULD MAKE THE CURSOR APPEAR.....!
+			int 33h                             ;THIS SHOULD MAKE THE CURSOR APPEAR.....!
+
+jmp Get_mouse_info
 		;; in AH: Row, AL: Column
 	
 		mov		bx,cx
