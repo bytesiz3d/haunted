@@ -96,8 +96,8 @@ MAIN    PROC    FAR
 		shr		bx,cl
 		shr		dx,cl
 		
-		mov		AH,bL
-		mov		AL,CL
+		mov		AH,dL
+		mov		AL,bL
 		
 		
 		
