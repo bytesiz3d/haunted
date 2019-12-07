@@ -5,9 +5,15 @@
 ;; HauntedData             DB      HauntedWidth*HauntedHeight dup(0)
 ;; P1Name                  DB      10, ?, 10 dup("$")
 ;; P2Name                  DB      10, ?, 10 dup("$")
-;; NewGame                 DB      0, 0, 0, "NEW GAME", 0, 0, 0
-;; Quit                    DB      0, 0, 0, "QUIT", 0, 0, 0                 
-;; playername              DB      'Player$', ' Name: $'                 
+;; NewGame                 DB      0 , 0, 0 , "NEW GAME", 0 , 0 , 0
+;; Quit                    DB      0 , 0, 0 , "QUIT", 0 , 0 , 0                 
+;; playername              DB      'Player$', ' Name: $'
+;; choose_msg              DB      17,"Choose Your level"
+;; level1_msg              DB      14,"Level 1 ==> F1"
+;; level2_msg              DB      14,"Level 2 ==> F2" 
+;; lv1Filename             DB      "lv1", 0
+;; lv2Filename             DB      "lv2", 0
+;; lvChosen                DW      ?                
 ;;; ===============================================================================
 ;;; File handling
 OpenFile        PROC    NEAR
@@ -74,7 +80,7 @@ Haunted_MainMenu        PROC    NEAR
         CALL    OpenFile
         CALL    ReadData
         LEA     BX, HauntedData ;BL contains index at the current drawn pixel
-        MOV     CX, 320         ;column                                    
+        MOV     CX, 352         ;column                                    
         MOV     DX, 200         ;row                                                     
         MOV     AH, 0ch                                                         
         
@@ -86,10 +92,10 @@ drawLoop:
 cont:                                                              
         INC     CX                                                             
         INC     BX                                                             
-        CMP     CX, HauntedWidth+320                                            
+        CMP     CX, HauntedWidth+352                                            
         JNE     drawLoop                                                               
         
-        MOV     CX, 320                                                       
+        MOV     CX, 352                                                       
         INC     DX                                                             
         CMP     DX, HauntedHeight+200                                           
         JNE     drawLoop                                                               
@@ -97,8 +103,8 @@ cont:
         call    CloseFile                                                     
         call    CloseFile                                                     
         
-        MOV     CH, 08FH                                                        
-        MOV     CL, 0FAH                                                        
+        MOV     CH, 0CH                                                        
+        MOV     CL, 0FH                                                        
         
 CHANGECHOSEN:                                                      
         MOV     SI, OFFSET [NewGame]                                            
@@ -165,7 +171,7 @@ WaitTillChoose:
         JMP     WaitTillChoose                                                 
         
 Chosen:                                                            
-        CMP     CL, 08FH                                                        
+        CMP     CL, 0CH                                                        
         JE      StartGame                                                       
         mov     AX, 3h          ;Return to text mode
         INT     10h
@@ -173,16 +179,75 @@ Chosen:
         INT     21H 
 
 StartGame:
-        MOV     DL, 81 ;X
-        MOV     DH, 30 ;Y
-        MOV     AH, 2
+        
+        MOV     CH, 0
+        MOV     AL, 0
+        MOV     BX, 0000H
+	    MOV     BP, OFFSET SB_space
+        MOV     AH, 13H   
+        MOV     CL, 120 
+        MOV     DX, 1E1DH
         INT     10H
         
-        MOV     CX, 10 ;10 times
+        MOV     CH, 0
         MOV     AL, 0
-        MOV     AH, 9
-        MOV     BX, 0
-        INT     10H
+        MOV     BX, 000CH
+	    MOV     BP, OFFSET choose_msg+1
+        MOV     AH, 13H   
+        MOV     CL, BYTE PTR choose_msg 
+        MOV     DX, 2337H
+        INT     10H  
+        
+        MOV     BX, 00FH
+	    MOV     BP, OFFSET level1_msg+1
+        MOV     AH, 13H   
+        MOV     CL, BYTE PTR level1_msg 
+        MOV     DX, 2539H
+        INT     10H     
+        
+	    MOV     BP, OFFSET level2_msg+1
+        MOV     AH, 13H   
+        MOV     CL, BYTE PTR level2_msg 
+        MOV     DX, 2639H
+        INT     10H     
+        
+ischosen:  
+        
+        
+        MOV     AH, 0                                                           
+        INT     16h                                                            
+        CMP     AH, 3BH                                                         
+        JNE     isf2
+             
+        MOV     SI, OFFSET lv1Filename
+        MOV     WORD PTR lvChosen, SI
+        jmp     playersnames
+isf2:        
+        CMP     AH, 3CH                                                         
+        jNE     ischosen
+        
+        MOV     SI, OFFSET lv2Filename
+        MOV     WORD PTR lvChosen, SI
+        
+                                                            
+        
+playersnames:  
+
+        MOV     CH, 0
+        MOV     AL, 0
+        MOV     BX, 0000H
+	    MOV     BP, OFFSET SB_space
+        MOV     AH, 13H   
+        MOV     CL, 20 
+        MOV     DX, 2337H
+        INT     10H  
+               
+        MOV     DX, 2539H
+        INT     10H  
+       
+        MOV     DX, 2639H
+        INT     10H  
+        
         
         MOV     DL, 31 ;X               
         MOV     DH, 30 ;Y                                       

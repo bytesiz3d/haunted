@@ -85,7 +85,8 @@ MAIN_MENU:
         
         ;; Load map
         LEA     DI, levelMap
-        LEA     SI, lv1Filename
+        MOV     SI, Word Ptr lvChosen
+     ;; LEA     SI, lv1Filename
         MOV     CX, GRID_COLUMNS*GRID_ROWS 
         CALL    LoadBuffer
         CALL    DrawMap         

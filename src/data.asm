@@ -2,6 +2,8 @@
 tpFilename                      DB      "../bin/teleport", 0
 x2Filename                      DB      "../bin/x2speed", 0
 lv1Filename                     DB      "../bin/lv1", 0
+lv2Filename             	DB      "../bin/lv2", 0              
+lvChosen                	DW      ?   
 
 ;;; Scoreboard variables
 SB_string                       DB      5 dup('$') 
@@ -26,7 +28,10 @@ p2Name                          DB      20, ?, 20 dup("$")
 newGame                         DB      0, 0, 0, "NEW GAME", 0, 0, 0
 quit                            DB      0, 0, 0, "QUIT", 0, 0, 0                 
 playerName                      DB      "Player$", " Name: $"                 
-
+choose_msg              	DB      18,"Choose Your level:"
+level1_msg              	DB      14,"Level 1 ==> F1"   
+level2_msg              	DB      14,"Level 2 ==> F2"             
+                  
 ;; DrawSprite variables
 Square_C                        DB      ?
 Square_R                        DB      ?
