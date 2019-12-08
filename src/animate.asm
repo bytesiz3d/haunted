@@ -20,7 +20,7 @@ AnimatePlayer   PROC    NEAR
         mov     AX, ap_newPosition
         sub     AX, ap_oldPosition      ;step = newPosition - oldPosition
 
-        mov     CL, 4
+        mov     CL, 3
         ;; Set animation step
         cmp     AL, 0   ;Column component
         jnz     ANIMATION_X_STEP
@@ -45,6 +45,9 @@ ANIMATION_LOOP:
         ;; 16 ms delay (CX:DX in microseconds)
         mov     CX, 0h
         mov     DX, 3E80h
+        ;; Reduce the delay:
+        ;; SUB     DX, 4000
+        SHR     DX, 1
         mov     AH, 86h
         INT     15h
 

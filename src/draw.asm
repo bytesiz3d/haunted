@@ -6,14 +6,14 @@ RCtoMapIndex    PROC    NEAR
         mov     DI, AX
 
         mov     CL, AL
-        mov     CH, 0
+        mov     CH, 0           ;Column
 
         mov     AL, 0
         XCHG    AH, AL
 
         mov     BX, Grid_COLUMNS
-        MUL     BX
-        ADD     AX, CX
+        MUL     BX              ;Row * Grid_COLUMNS
+        ADD     AX, CX          ; + Column
 
         mov     BX, AX
         RET
