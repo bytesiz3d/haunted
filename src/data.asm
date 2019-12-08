@@ -1,26 +1,36 @@
 ;;; Binary files 
+HauntedFilename                 DB      "../bin/haunted", 0
 tpFilename                      DB      "../bin/teleport", 0
 x2Filename                      DB      "../bin/x2speed", 0
 lv1Filename                     DB      "../bin/lv1", 0
-lv2Filename             	DB      "../bin/lv2", 0              
-lvChosen                	DW      ?   
+lv2Filename             	    DB      "../bin/lv2", 0              
+lvChosen                	    DW      ?   
 
 ;;; Scoreboard variables
 SB_string                       DB      5 dup('$') 
 SB_ext                          DB      "'s score: " 
-SB_line                         DB      128 dup('_')  ;;for score & notification
-SB_space                        DB      128(32)       ;;for score & notification
+SB_line                         DB      128 dup('_')  ;for score & notification
+SB_space                        DB      128(32)       ;for score & notification
 
 ;;; Notification bar
-NB_msg1				DB	31 , "Level 1: Press ESC to Exit game"
-NB_msg2				DB	31 , "Level 2: Press ESC to Exit game"
-NB_msg3				DB	53 , "GAME OVER Press Enter to go to Level 2 or ESC to Exit"
-NB_msg4				DB	27 , "GAME OVER Press ESC to Exit"
+NB_msg1                         DB      26, "Press ENTER to start game."
+NB_msg2                         DB      41, "Press ESC to Exit game. First to 48 wins."
+NB_msg3                         DB      53, "GAME OVER Press Enter to go to Level 2 or ESC to Exit"
+NB_msg4                         DB      27, "GAME OVER Press ESC to Exit"
+
+;;; AnimatePlayer variables
+ap_newPosition                  DW      ?
+ap_oldPosition                  DW      ?
+ap_currentPosition              DD      ?
+ap_Step_X                       DW      ?
+ap_Step_Y                       DW      ?
+
+;;; RandomRC variables
+rrc_seed                        DW      ?        
 
 ;;; Haunted_MainMenu variables
 HauntedWidth                    EQU     320
 HauntedHeight                   EQU     89
-HauntedFilename                 DB      "../bin/haunted", 0
 HauntedData                     DB      HauntedWidth*HauntedHeight dup(0)
 fileHandle                      DW      ?
 p1Name                          DB      20, ?, 20 dup("$")
@@ -28,11 +38,12 @@ p2Name                          DB      20, ?, 20 dup("$")
 newGame                         DB      0, 0, 0, "NEW GAME", 0, 0, 0
 quit                            DB      0, 0, 0, "QUIT", 0, 0, 0                 
 playerName                      DB      "Player$", " Name: $"                 
-choose_msg              	DB      18,"Choose Your level:"
-level1_msg              	DB      14,"Level 1 ==> F1"   
-level2_msg              	DB      14,"Level 2 ==> F2"             
+choose_msg                      DB      18, "Choose Your level:"
+level1_msg                      DB      14, "Level 1 ==> F1"   
+level2_msg                      DB      14, "Level 2 ==> F2"             
                   
 ;; DrawSprite variables
+Square_X                        LABEL   WORD    ;DrawSpriteXY
 Square_C                        DB      ?
 Square_R                        DB      ?
 Square_XF                       DW      ?
@@ -71,16 +82,16 @@ Player_1_WIN_MESSAGE            DB      "Player 2 wins!$"
 newPosition                     DW      ?
 currentPlayer                   DW      ?      
 Player_Base                     LABEL   WORD
-Player_0                        DW      0202h
-Player_1                        DW      021Dh
+Player_0                        DW      ?
+Player_1                        DW      ?
         
 Ghost_PER_PLAYER                EQU     1
 Ghost_Base                      LABEL   WORD
-Ghost_00                        DW      1002h
-Ghost_10                        DW      101Dh
+Ghost_00                        DW      ?
+Ghost_10                        DW      ?
 
 ;;; Ghost controls
-ghostDelay                      EQU     150
+ghostDelay                      EQU     10
 ghostDamage                     EQU     10
 ghostCounter                    DB      ghostDelay
 
@@ -88,7 +99,7 @@ ghostCounter                    DB      ghostDelay
 Score_Base                      LABEL   BYTE
 Score_Player_0                  DW      0000h
 Score_Player_1                  DW      0000h
-Score_TARGET                    EQU     24
+Score_TARGET                    EQU     48
 
 ;;; Level map and Game State
 include map.asm

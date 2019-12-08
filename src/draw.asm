@@ -6,14 +6,14 @@ RCtoMapIndex    PROC    NEAR
         mov     DI, AX
 
         mov     CL, AL
-        mov     CH, 0
+        mov     CH, 0           ;Column
 
         mov     AL, 0
         XCHG    AH, AL
 
         mov     BX, Grid_COLUMNS
-        MUL     BX
-        ADD     AX, CX
+        MUL     BX              ;Row * Grid_COLUMNS
+        ADD     AX, CX          ; + Column
 
         mov     BX, AX
         RET
@@ -38,6 +38,8 @@ RCtoMapSprite   PROC     NEAR
 RCtoMapSprite   ENDP
 
 ;;; ============================================================================================
+        ;; in AX: Square_Row, Square_Column
+        ;; in SI: Sprite offset
 DrawSprite     PROC    NEAR
         MOV     Square_R, AH
         MOV     Square_C, AL
@@ -88,6 +90,42 @@ DRAW_LOOP:
         RET
 DrawSprite     ENDP
 
+;;; ============================================================================================
+        ;; in CX: X position
+        ;; in DX: Y position
+        ;; in SI: Sprite offset
+DrawSpriteXY    PROC    NEAR
+        mov     Square_X, CX
+
+        MOV     BH, 0
+        MOV     BL, Square_RES
+
+        ;; End X
+        MOV     Square_XF, CX
+        ADD     Square_XF, BX
+        
+        ;; End Y
+        MOV     Square_YF, DX
+        ADD     Square_YF, BX
+
+DRAW_LOOP_XY:
+        MOV     AH, 0CH
+        LODSB                   ;Load [SI] into AL, increment SI
+        INT     10H             ;Draw
+
+        INC     CX
+        CMP     CX, Square_XF   
+        JB      DRAW_LOOP_XY
+        ;; Finished row
+
+        mov     CX, Square_X
+        INC     DX
+        CMP     DX, Square_YF   
+        JB      DRAW_LOOP_XY
+        ;; Finished all rows
+        
+        RET
+DrawSpriteXY    ENDP
 ;;; ============================================================================================
 DrawMap         PROC    NEAR
         MOV     Map_RC, 0000h   ;H: Row, L: Column
