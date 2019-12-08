@@ -14,6 +14,7 @@ include menu.asm
         ;; Haunted_MainMenu
         ;; Open, Read, CloseFile
         ;; LoadBuffer
+        ;; ResetGame
         
 ;;; ============================================================================================
 ;;; Scoreboard
@@ -46,6 +47,8 @@ include animate.asm
         ;; in AX: New Position (R, C)
         ;; in BX: Old Position (R, C)
         ;; AnimatePlayer
+        ;; SpawnCoin
+        ;; RandomRC
 ;;; ============================================================================================
 ;;; Powerup utilities
 include power.asm
@@ -71,6 +74,12 @@ MAIN    PROC    FAR
         mov     DS, AX
         mov     ES, AX
 
+        ;; Initialize the seed
+        ;; Get system clock tick count IN DX
+        MOV     AX, 0
+        INT     1Ah
+        mov     rrc_seed, DX
+        
         ;; Teleport sprite
         LEA     DI, Sprite_Teleport
         LEA     SI, tpFilename
@@ -90,25 +99,34 @@ MAIN_MENU:
         INT     10H   
         CALL    Haunted_MainMenu
 
-        ;; New Game
-        CALL    ResetGame
-        
         ;; Load map
         LEA     DI, levelMap
         MOV     SI, Word Ptr lvChosen
-     ;; LEA     SI, lv1Filename
         MOV     CX, GRID_COLUMNS*GRID_ROWS 
         CALL    LoadBuffer
+
+        ;; New Game
+        CALL    ResetGame
         CALL    DrawMap         
-
-	MOV	DI, OFFSET NB_msg1+1
-	MOV	CL, BYTE PTR NB_msg1
-	MOV	CH, 0
-	MOV	SI, CX
-	CALL	NotificationBar
-
         mDrawEntities
         
+        MOV	DI, OFFSET NB_msg1+1
+        MOV	CL, BYTE PTR NB_msg1
+        MOV	CH, 0
+        MOV	SI, CX
+        CALL	NotificationBar
+        
+_ENTER_GAME:     
+        mov     AH, 0
+        INT     16h
+        CMP     AH, 1Ch
+        JNZ     _ENTER_GAME
+        
+        MOV     DI, OFFSET NB_msg2+1
+        MOV     CL, BYTE PTR NB_msg2
+        MOV     CH, 0
+        MOV     SI, CX
+        CALL    NotificationBar
         JMP     FRAME_START
 
 ;;; ============================================================================================
@@ -122,19 +140,19 @@ MOVE_GHOSTS_FRAME_START:
 
         mov     ghostCounter, ghostDelay
 
-	mov	currentGhost,0
+        mov     currentGhost,0
         mov     AX, Player_0
         mov     DI, offset Ghost_00
         mov     BX, offset Sprite_Ghost_0
         CALL    MoveGhost
-	CALL	MoveGhostX2Checker
-
-	mov	currentGhost,1
+        CALL    MoveGhostX2Checker      
+        
+        mov     currentGhost,1
         mov     AX, Player_1
         mov     DI, offset Ghost_10
         mov     BX, offset Sprite_Ghost_1
         CALL    MoveGhost
-	CALL	MoveGhostX2Checker
+        CALL    MoveGhostX2Checker      
 
 ;;; ============================================================================================
 FRAME_START:
@@ -145,7 +163,8 @@ FRAME_START:
         INT     15h
 
         call    Scoreboard
-        
+        CALL    SpawnCoin
+
         DEC     totalFrameCount
         JNZ     HIT_GHOST?
         JMP     GAME_OVER
@@ -311,10 +330,10 @@ FREEZE_Player0:
 
 ;;; ______________________________________________
 HIT_x2_SPEED:
-	CMP     currentPlayer, 0
+        CMP     currentPlayer, 0
         JE      x2Speed_Ghost1
-		
-	MOV     x2SpeedCounter_Ghost0, x2SpeedFrameCount       ;Freeze player 0    
+
+        MOV     x2SpeedCounter_Ghost0, x2SpeedFrameCount       ;Freeze player 0    
         JMP     CLEAR_PIECE
 
 X2Speed_Ghost1:

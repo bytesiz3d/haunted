@@ -20,29 +20,31 @@ CheckDoubleSpeed         ENDP
 ;;; ============================================================================================
 Teleport   PROC     NEAR
 
-	CMP	teleportIndicator,2
-	JE 	EndTeleport
+        CMP     teleportIndicator,2
+        JE      EndTeleport
 		
-	CMP	teleportIndicator,1		
-	JE	teleport_player0
+        CMP     teleportIndicator,1		
+        JE      teleport_player0
 
-        mov	teleportIndicator,2
+        mov     teleportIndicator,2
         mov     AX, Player_1		
         CALL    RCtoMapSprite
         CALL    DrawSprite
 
-        mov	newPosition,021DH
+        call    RandomRC
+        mov     newPosition ,AX
         mov     SI, newPosition         ;Update position
         mov     Player_1, SI    
-	jmp	EndTeleport
+        jmp     EndTeleport
 		
 teleport_player0:
-	mov	teleportIndicator,2		
-	mov     AX, Player_0		
+        mov     teleportIndicator,2		
+        mov     AX, Player_0		
         CALL    RCtoMapSprite
         CALL    DrawSprite
 
-        mov	newPosition,0202H
+        call    RandomRC
+        mov     newPosition, AX
         mov     SI, newPosition         ;Update position
         mov     Player_0, SI    
 		

@@ -20,7 +20,7 @@ AnimatePlayer   PROC    NEAR
         mov     AX, ap_newPosition
         sub     AX, ap_oldPosition      ;step = newPosition - oldPosition
 
-        mov     CL, 3
+        mov     CL, 4
         ;; Set animation step
         cmp     AL, 0   ;Column component
         jnz     ANIMATION_X_STEP
@@ -97,3 +97,83 @@ END_ANIMATION:
 
         RET
 AnimatePlayer   ENDP    
+
+;;; ============================================================================================
+SpawnCoin       PROC    NEAR
+        ;; Choose a random RC
+        ;; If the point is empty, insert a coin
+        ;; If not, repeat
+
+        MOV     AX, totalFrameCount
+        CWD
+        MOV     BX, 30 * 4      ;30 frames * 4 seconds
+        DIV     BX
+        CMP     DX, 0           ;Does the current totalFrameCount divide 120 frames?
+        JZ      SC_SPAWN
+        RET
+
+SC_SPAWN:      
+        CALL    RandomRC
+
+        MOV     AX, totalFrameCount
+        CWD
+        MOV     CX, 30 * 4 * 4  ;30 frames * 4 seconds * 5 times
+        DIV     CX
+        CMP     DX, 0           ;Does the current totalFrameCount divide 480 frames?
+        JNZ     SC_NORMAL_COIN
+        
+        mov     levelMap[BX], SPRITE_ID_BIG_COIN
+        mov     AX, DI
+        mov     SI, offset Sprite_Big_Coin
+        call    DrawSprite
+        RET
+        
+SC_NORMAL_COIN: 
+        mov     levelMap[BX], SPRITE_ID_COIN
+        mov     AX, DI
+        mov     SI, offset Sprite_Coin
+        call    DrawSprite
+        RET
+SpawnCoin       ENDP
+
+;;; ============================================================================================
+        ;; Returns a random empty (R, C) pair in AX
+RandomRC        PROC    NEAR
+RRC_CALCULATE:  
+        ;; MOV     AX, 0
+        ;; INT     1Ah
+        ;; mov     rrc_seed, DX
+
+        ;; Working code here?
+        MOV     DX, rrc_seed
+        
+        MOV     AX, DX
+        MOV     DX, 0
+        MUL     AX
+        MOV     DH, DL
+        MOV     DL, AH
+
+        MOV     rrc_seed, DX
+        
+        MOV     AL, DL 
+        MOV     AH, 0
+        MOV     DL, 32  ;C % 32
+        DIV     DL
+        MOV     DL, AH
+
+        MOV     AL, DH
+        MOV     AH, 0
+        MOV     DH, 18  ;R % 18
+        DIV     DH
+        MOV     DH, AH
+        
+        MOV     AX, DX
+        CALL    RCtoMapIndex
+
+        mov     AL, levelMap[BX]
+        CMP     AL, SPRITE_ID_EMPTY
+        JNE     RRC_CALCULATE
+
+        MOV     AX, DI
+        RET
+RandomRC        ENDP
