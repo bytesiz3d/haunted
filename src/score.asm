@@ -39,19 +39,32 @@ IntToString     ENDP
 ;;;Print line above score board then print players and their score
 ScoreBoard      PROC    NEAR                                                                                   
         MOV     AL, 0
+        MOV     CH, 0
         MOV     BX, 000FH
 	MOV     BP, OFFSET SB_LINE
         MOV     AH, 13H   
         MOV     CL, 80H 
-        MOV     DX, 2A00H
+        MOV     DX, 2B00H
         INT     10H 
         
+        MOV     CX, 0
+        MOV     DX, 02C6H
+        MOV     SI, OFFSET Sprite_Player_0
+        call    DrawSpriteXY 
+
+        MOV     CX, 0290H 
+        MOV     DX, 02C6H
+        MOV     SI, OFFSET Sprite_Player_1
+        call    DrawSpriteXY 
+
+        MOV     CH, 0
+
         MOV     AL, 0
-        MOV     BX, 000CH
+        MOV     BX, 0036H
         MOV     BP, OFFSET p1Name+2
         MOV     AH, 13H   
         MOV     CL, p1Name+1 
-        MOV     DX, 2C01H
+        MOV     DX, 2D05H
         INT     10H 
         
         MOV     BP, OFFSET SB_EXT
@@ -70,10 +83,12 @@ ScoreBoard      PROC    NEAR
         MOV     DI, DX
         call    IntToString
         
+	
+	
         MOV     BX, 000CH
         MOV     BP, OFFSET p2Name+2   
         MOV     CL, p2Name+1
-        MOV     DX, 2C55H
+        MOV     DX, 2D57H
         INT     10H
         
         MOV     BP, OFFSET SB_EXT
@@ -95,7 +110,7 @@ ScoreBoard      PROC    NEAR
 	MOV     BX, 0000H         
         MOV     AH, 13H
         MOV     BP, OFFSET SB_SPACE
-        MOV     DX, 2C39H
+        MOV     DX, 2D39H
         MOV     CX, 5
         INT     10H
 
@@ -107,7 +122,7 @@ ScoreBoard      PROC    NEAR
         DIV     BX
         MOV     BX, AX
        	
-	MOV     DX, 2C39H
+	MOV     DX, 2D39H
         MOV     DI, DX
         call    IntToString
 

@@ -110,9 +110,17 @@ MAIN_MENU:
         CALL    DrawMap         
         mDrawEntities
         
+        MOV	CH, 0
+        MOV     AL, 0
+        MOV     BX, 000FH 
+        MOV     AH, 13H   
+        MOV     CL, 80H 
+        MOV     BP, OFFSET SB_line   
+        MOV     DX, 2E00h
+        INT     10h 
+	
         MOV	DI, OFFSET NB_msg1+1
         MOV	CL, BYTE PTR NB_msg1
-        MOV	CH, 0
         MOV	SI, CX
         CALL	NotificationBar
         
