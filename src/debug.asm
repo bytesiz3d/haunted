@@ -93,33 +93,33 @@ MAIN    PROC    FAR
         LEA     DI, Sprite_Teleport
         LEA     SI, tpFilename
         MOV     CX, SPRITE_SIZE
-        CALL    LoadBuffer
+        ;CALL    LoadBuffer
 
         ;; Double ghost speed sprite
         LEA     DI, Sprite_x2_Speed
         LEA     SI, x2Filename
         MOV     CX, SPRITE_SIZE
-        CALL    LoadBuffer
+        ;CALL    LoadBuffer
 
 MAIN_MENU:      
         ;; Clear the screen
         mov     AX, 4F02H
         mov     BX, 0105H
-        INT     10H   
-        CALL    Haunted_MainMenu
+        ;; INT     10H   
+        ;CALL    Haunted_MainMenu
 
         ;; Load map
         LEA     DI, levelMap
         MOV     SI, Word Ptr lvChosen
         MOV     CX, GRID_COLUMNS*GRID_ROWS 
-        CALL    LoadBuffer
+        ;CALL    LoadBuffer
 
         ;; New Game
         ;; CALL    ResetGame
         CALL    InitSerial
         CALL    InitGame
         CALL    DrawMap         
-        mDrawEntities
+        ;mDrawEntities
         
         MOV	CH, 0
         MOV     AL, 0
@@ -197,17 +197,17 @@ FRAME_START:
         JMP     GAME_OVER
 
 HIT_GHOST?:     
-        call    CheckGhostCollision
+        ;call    CheckGhostCollision
 
         ;; Check if any player reached the score target
         cmp     Score_Player_0, Score_TARGET
-        JAE     FAR PTR PLAYER_0_WIN
+        ;JAE     FAR PTR PLAYER_0_WIN
 
         cmp     Score_Player_1, Score_TARGET
-        JAE     FAR PTR PLAYER_1_WIN
+        ;JAE     FAR PTR PLAYER_1_WIN
 
         ;; Reduce active powerup timers
-        call    ReduceTimers
+        ;call    ReduceTimers
 
 ;;; ============================================================================================
 READ_INPUT:

@@ -6,6 +6,13 @@ lv1Filename                     DB      "../bin/lv1", 0
 lv2Filename                     DB      "../bin/lv2", 0              
 lvChosen                        DW      ?   
 
+;;; Serial communication variables
+chosenNumber                    DB      ?
+otherNumber                     DB      ?
+IG_counter                      DW      ?
+IG_inputData                    DD      2 dup(?)
+outputMove                      DB      ?
+
 ;;; Scoreboard variables
 SB_string                       DB      5 dup('$') 
 SB_ext                          DB      "'s score: " 
@@ -107,6 +114,7 @@ totalFrameCount                 DW      30 * 60
 mapValue                        DB      ?
 
 freezeFrameCount                EQU     60      
+freezeCounter_BASE              LABEL   BYTE
 freezeCounter_Player0           DB      0
 freezeCounter_Player1           DB      0
 

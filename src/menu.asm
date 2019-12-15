@@ -290,11 +290,6 @@ Haunted_MainMenu        ENDP
         ;; Reset all game state variables
 ResetGame       PROC    NEAR
         
-        ;; mov     Player_0, 0101h
-        ;; mov     Player_1, 011Eh
-        ;; mov     Ghost_00, 1001h
-        ;; mov     Ghost_10, 101Eh
-
         CALL    RandomRC
         mov     Player_0, AX
 
