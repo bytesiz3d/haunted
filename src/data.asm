@@ -7,11 +7,11 @@ lv2Filename                     DB      "../bin/lv2", 0
 lvChosen                        DW      ?   
 
 ;;; Serial communication variables
-chosenNumber                    DB      ?
-otherNumber                     DB      ?
+localPlayer                     DB      ?
+otherPlayer                     DB      ?
 IG_counter                      DW      ?
-IG_inputData                    DD      2 dup(?)
-outputMove                      DB      ?
+IG_inputData                    DW      5 dup(?)
+frameMove                       DB      ?
 
 ;;; Scoreboard variables
 SB_string                       DB      5 dup('$') 
@@ -99,7 +99,8 @@ Ghost_10                        DW      ?
 
 ;;; Ghost controls
 ghostDelay                      EQU     10
-ghostDamage                     EQU     10
+;; ghostDelay                      EQU     0FFh
+ghostDamage                     EQU     15
 ghostCounter                    DB      ghostDelay
 
 ;;; Player scores
@@ -110,7 +111,8 @@ Score_TARGET                    EQU     48
 
 ;;; Level map and Game State
 include map.asm
-totalFrameCount                 DW      30 * 60
+;; totalFrameCount                 DW      30 * 60
+totalFrameCount                 DW      0FFFFh
 mapValue                        DB      ?
 
 freezeFrameCount                EQU     60      

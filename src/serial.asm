@@ -1,5 +1,5 @@
-;; chosenNumber    DB      ?
-;; otherNumber     DB      ?
+;; localPlayer    DB      ?
+;; otherPlayer    DB      ?
 
 ;;; =================================================================================
         ;; Determines player numbers
@@ -21,61 +21,43 @@ InitSerial     PROC     NEAR
         MOV     AL, 1Bh         ;Access RT buffer, Disable Set Break, Even Parity, One Stop bit, 8 bits
         OUT     DX, AL
 
+        ;; Check if received 0
         CALL    SR_ReceiveCharacter
         CMP     BL, 0FFh        ;Error code
         JE      SERIAL_NO_INPUT
 
         ;; Set as input, reply with input
-        mov     chosenNumber, BL
-        mov     otherNumber, BL
-        xor     otherNumber, 01
+        mov     localPlayer, 1
+        mov     otherPlayer, 0
+
+        mov     BL, otherPlayer
         CALL    SR_SendCharacter
-
-SERIAL_WAIT_INPUT:
-        CALL    SR_ReceiveCharacter
-        CMP     BL, 0FFh        ;Error code
-        JE      SERIAL_WAIT_INPUT
-
-        CMP     BL, chosenNumber 
-        JNE     SERIAL_WAIT_INPUT
-        ;; Received my character
-        JMP     SERIAL_FINISHED
+        
+        RET
 
 SERIAL_NO_INPUT:        
-        ;; Get system clock tick count IN DX
-        MOV     AX, 0
-        INT     1Ah
-
-        SHR     DL, 1
-        MOV     chosenNumber, 0
-        JNC     SERIAL_SET_0
-        ADD     chosenNumber, 1
-SERIAL_SET_0:
-
-        ;; Set as number
-        MOV     AL, chosenNumber
-        XOR     AL, 01
-        MOV     otherNumber, AL
-
-        ;; Send other number
-        MOV     BL, otherNumber
+        ;; Send 1
+        mov     localPlayer, 0
+        mov     otherPlayer, 1
+        mov     BL, otherPlayer
         CALL    SR_SendCharacter
 
-SERIAL_WAIT_REPLY:      
+        ;; 8 ms delay (CX:DX in microseconds)
+        mov     CX, 0h
+        mov     DX, 1000h
+        mov     AH, 86h
+        INT     15h
+
+SERIAL_WAIT_ECHO:       
+        ;; Check if received 0
         CALL    SR_ReceiveCharacter
         CMP     BL, 0FFh        ;Error code
-        JE      SERIAL_WAIT_REPLY
+        JE      SERIAL_WAIT_ECHO
 
-        CMP     BL, otherNumber 
-        JNE     SERIAL_WAIT_REPLY
-        ;; Received the other character
+        CMP     BL, localPlayer 
+        JNE     SERIAL_WAIT_ECHO
+        ;; Received 0
 
-        ;; Confirm and exit
-        mov     BL, otherNumber
-        CALL    SR_SendCharacter
-        JMP     SERIAL_FINISHED
-        
-SERIAL_FINISHED:        
         RET
 InitSerial     ENDP 
 
@@ -117,3 +99,10 @@ RC_NO_DATA:
         mov     BL, 0FFh
         RET
 SR_ReceiveCharacter     ENDP
+
+;;; =================================================================================
+        ;; in BL: character to confirm
+SR_RTX                  PROC    NEAR
+        ;; TODO: combine receive + transmit, transmit + wait echo
+        RET
+SR_RTX                  ENDP    
