@@ -22,7 +22,7 @@ InitSerial     PROC     NEAR
         OUT     DX, AL
 
         ;; Check if received 0
-        CALL    SR_ReceiveCharacter
+        CALL    SR_ReceiveByte
         CMP     BL, 0FFh        ;Error code
         JE      SERIAL_NO_INPUT
 
@@ -31,7 +31,7 @@ InitSerial     PROC     NEAR
         mov     otherPlayer, 0
 
         mov     BL, otherPlayer
-        CALL    SR_SendCharacter
+        CALL    SR_SendByte
         
         RET
 
@@ -40,7 +40,7 @@ SERIAL_NO_INPUT:
         mov     localPlayer, 0
         mov     otherPlayer, 1
         mov     BL, otherPlayer
-        CALL    SR_SendCharacter
+        CALL    SR_SendByte
 
         ;; 8 ms delay (CX:DX in microseconds)
         mov     CX, 0h
@@ -50,7 +50,7 @@ SERIAL_NO_INPUT:
 
 SERIAL_WAIT_ECHO:       
         ;; Check if received 0
-        CALL    SR_ReceiveCharacter
+        CALL    SR_ReceiveByte
         CMP     BL, 0FFh        ;Error code
         JE      SERIAL_WAIT_ECHO
 
@@ -63,7 +63,7 @@ InitSerial     ENDP
 
 ;;; =================================================================================
         ;; in BL: Byte to send
-SR_SendCharacter        PROC    NEAR
+SR_SendByte        PROC    NEAR
         ;; Check that Transmitter Holding Register is Empty
         mov     dx, 03FDh       ;Line Status Register
         in      al, dx          ;Read Line Status
@@ -77,11 +77,11 @@ SR_SendCharacter        PROC    NEAR
 
 SC_NO_DATA:     
         RET
-SR_SendCharacter        ENDP
+SR_SendByte        ENDP
 
 ;;; =================================================================================
         ;; out BL: character received
-SR_ReceiveCharacter     PROC    NEAR
+SR_ReceiveByte     PROC    NEAR
         ;; Check that data is ready
         mov     dx, 03FDh       ;Line Status Register
         in      al, dx          ;Read Line Status
@@ -98,8 +98,48 @@ SR_ReceiveCharacter     PROC    NEAR
 RC_NO_DATA:     
         mov     BL, 0FFh
         RET
-SR_ReceiveCharacter     ENDP
+SR_ReceiveByte     ENDP
 
+;;; =================================================================================
+        ;; in BX: Word to send
+SR_SendWord        PROC    NEAR
+        ;; Check that Transmitter Holding Register is Empty
+        mov     dx, 03FDh       ;Line Status Register
+        in      al, dx          ;Read Line Status
+        test    al, 00100000b
+        JZ      SC_NO_DATA      ;Not empty
+
+        ;; Ready to transmit
+        mov     dx, 03F8h       ;Transmit data register
+        mov     AX, BX
+        out     dx, AX
+
+SCW_NO_DATA:     
+        RET
+SR_SendWord        ENDP
+
+;;; =================================================================================
+        ;; out BX: Word received
+SR_ReceiveWord     PROC    NEAR
+        ;; Check that data is ready
+        mov     dx, 03FDh       ;Line Status Register
+        in      al, dx          ;Read Line Status
+        test    al, 1
+        JZ      RC_NO_DATA
+
+        ;; Ready to receive
+        mov     dx, 03F8h       ;Transmit data register
+        in      AX, dx
+
+        mov     BX, AX
+        RET
+        
+RCW_NO_DATA:     
+        mov     BX, 0FFFFh
+        RET
+SR_ReceiveWord     ENDP
+
+;;; =================================================================================
 ;;; =================================================================================
         ;; in BL: character to confirm
 SR_RTX                  PROC    NEAR

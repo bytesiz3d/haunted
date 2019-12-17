@@ -12,8 +12,8 @@ include data.asm
 ;;; Serial communication 
 include serial.asm
         ;; InitSerial
-        ;; SR_SendCharacter
-        ;; SR_ReceieveCharacter
+        ;; SR_SendByte
+        ;; SR_ReceiveByte
 include start.asm
         ;; InitGame
         
@@ -129,7 +129,7 @@ MAIN_MENU:
         CALL	NotificationBar
         
 _ENTER_GAME:     
-        CALL    SR_ReceiveCharacter
+        CALL    SR_ReceiveByte
         CMP     BL, 1Ch         ;Enter
         JE      _ENTER_GAME_RECEIVED
 
@@ -145,17 +145,17 @@ _ENTER_GAME:
 
         ;; Send ENTER
         MOV     BL, 1Ch
-        CALL    SR_SendCharacter
+        CALL    SR_SendByte
 
 _ENTER_GAME_WAIT_ECHO:
-        CALL    SR_ReceiveCharacter
+        CALL    SR_ReceiveByte
         CMP     BL, 1Ch
         JNE     _ENTER_GAME_WAIT_ECHO
 
         JMP     _ENTER_GAME_FINISHED
 
 _ENTER_GAME_RECEIVED:
-        CALL    SR_SendCharacter
+        CALL    SR_SendByte
 _ENTER_GAME_FINISHED:
         
         MOV     DI, OFFSET NB_msg2+1
@@ -192,9 +192,9 @@ MOVE_GHOSTS_FRAME_START:
 
 ;;; ============================================================================================
 FRAME_START:
-        ;; 33 ms delay (CX:DX in microseconds)
-        mov     CX, 0h
-        mov     DX, 8235h
+        ;; 66 ms delay (CX:DX in microseconds)
+        mov     CX, 0001h
+        mov     DX, 046Ah
         mov     AH, 86h
         INT     15h
 
@@ -202,6 +202,8 @@ FRAME_START:
         CALL    SpawnCoin
 
         DEC     totalFrameCount
+        DEC     totalFrameCount
+        
         JNZ     HIT_GHOST?
         JMP     GAME_OVER
 
@@ -221,7 +223,7 @@ HIT_GHOST?:
 ;;; ============================================================================================
 READ_INPUT:
         ;; Check if a character has been received
-        call    SR_ReceiveCharacter
+        call    SR_ReceiveByte
         cmp     BL, 0FFh        ;Error code
         JE      LOCAL_MOVED?
 
@@ -244,7 +246,7 @@ MOVED?:
         ;; Send the keystroke
         mov     frameMove, AH
         mov     BL, frameMove
-        CALL    SR_SendCharacter
+        CALL    SR_SendByte
         mov     AH, frameMove
 
         CMP     AH, 01h         ;ESC
@@ -418,10 +420,21 @@ CLEAR_PIECE:
 
 MOVE_PLAYER:    
         mov     SI, currentPlayer
-        SHL     SI, 1                   ;Word   
-        mov     BX, Player_Base[SI]     ;Previous position
-        mov     AX, newPosition
-        CALL    AnimatePlayer
+        SHL     SI, 1                   ;Word
+        mov     AX, Player_Base[SI]     ;Erase the player and redraw the cell
+        CALL    RCtoMapSprite
+        CALL    DrawSprite
+
+        mov     SI, newPosition         ;Update position
+        mov     DI, currentPlayer
+        SHL     DI, 1                   ;Word
+        mov     Player_Base[DI], SI
+
+        ;; mov     SI, currentPlayer
+        ;; SHL     SI, 1                   ;Word   
+        ;; mov     BX, Player_Base[SI]     ;Previous position
+        ;; mov     AX, newPosition
+        ;; CALL    AnimatePlayer
         
         CALL    Teleport
         JMP     MOVE_GHOSTS_FRAME_START

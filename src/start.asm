@@ -36,11 +36,11 @@ IG_SEND_GAME_DATA:
 
         ;; Send the character
         mov     BL, byte ptr IG_inputData[SI]
-        call    SR_SendCharacter
+        call    SR_SendByte
 
 IG_WAIT_ECHO_DATA:      
         ;; Repeat until echo is received
-        call    SR_ReceiveCharacter
+        call    SR_ReceiveByte
         cmp     BL, byte ptr IG_inputData[SI]
         JNE     IG_WAIT_ECHO_DATA
         
@@ -54,7 +54,7 @@ IG_NOT_PRIMARY:
         mov     IG_counter, 2 * 5 ;5 words
         ;; Read data
 IG_RECEIVE_GAME_DATA:  
-        call    SR_ReceiveCharacter
+        call    SR_ReceiveByte
         cmp     BL, 0FFh        ;Error code
         JE      IG_RECEIVE_GAME_DATA
 
@@ -64,7 +64,7 @@ IG_RECEIVE_GAME_DATA:
 
         ;; Send echo
         mov     byte ptr IG_inputData[SI], BL
-        call    SR_SendCharacter
+        call    SR_SendByte
         
         dec     IG_counter
         JNZ     IG_RECEIVE_GAME_DATA

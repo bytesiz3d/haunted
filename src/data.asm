@@ -98,9 +98,9 @@ Ghost_00                        DW      ?
 Ghost_10                        DW      ?
 
 ;;; Ghost controls
-ghostDelay                      EQU     10
+ghostDelay                      EQU     16
 ;; ghostDelay                      EQU     0FFh
-ghostDamage                     EQU     15
+ghostDamage                     EQU     10
 ghostCounter                    DB      ghostDelay
 
 ;;; Player scores
@@ -115,7 +115,7 @@ include map.asm
 totalFrameCount                 DW      0FFFFh
 mapValue                        DB      ?
 
-freezeFrameCount                EQU     60      
+freezeFrameCount                EQU     45      
 freezeCounter_BASE              LABEL   BYTE
 freezeCounter_Player0           DB      0
 freezeCounter_Player1           DB      0

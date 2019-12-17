@@ -117,7 +117,7 @@ ScoreBoard      PROC    NEAR
         ;; Divide total frame count by (30 FPS)
         ;; Print in the scoreboard
         MOV     AX, totalFrameCount
-        CWD
+        MOV     DX, 0
         MOV     BX, 30
         DIV     BX
         MOV     BX, AX
