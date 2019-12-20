@@ -1,276 +1,275 @@
-;.model small
-;.stack 64
-;.data 
+;Data
 ;	Value_S db ?
 ;	Value_R db ?
-;	point    dw 0D00h
-;	point2   dw 0100h
-;.code
-;main proc far
-;	mov ax , @data
-;	mov ds , ax
-Chat Proc near
-		
-	mov bl,0
-	mov ax,0600h
-	mov bh,01Fh
-	mov cx,0
-	mov dx,0B4fh
-	int 10h	
+;	point    dw 0D00H
+;	point2   dw 0100H
 
-	mov bl,0
-	mov ax,0600h
-	mov bh,4Fh
-	mov cx,0C00h
-	mov dx,184fh
-	int 10h
+Chat PROC NEAR
+	MOV AX, 0D00H
+	MOV WORD PTR point, AX
+	MOV AX, 0100H
+	MOV WORD PTR point2, AX
 
-	mov bx,0
-	mov al,0
-	mov cx,0
+	MOV BL,0
+	MOV AX,0600H
+	MOV BH,01FH
+	MOV CX,0
+	MOV DX,0B4FH
+	INT 10H	
 
-	mov ah,2
-	mov dx,0C00h
-	int 10h
+	MOV BL,0
+	MOV AX,0600H
+	MOV BH,4FH
+	MOV CX,0C00H
+	MOV DX,184FH
+	INT 10H
 
-	mov ah , 9
-	mov dx , offset p1Name+2 
-	int 21h
+	MOV BX,0
+	MOV AL,0
+	MOV CX,0
 
-	mov ah,2
-	mov dx,0000h
-	int 10h
+	MOV AH,2
+	MOV DX,0C00H
+	INT 10H
 
-	mov ah , 9
-	mov dx , offset p2Name+2 
-	int 21h
+	MOV AH , 9
+	MOV DX , offset p1Name+2 
+	INT 21H
+
+	MOV AH,2
+	MOV DX,0000H
+	INT 10H
+
+	MOV AH , 9
+	MOV DX , offset p2Name+2 
+	INT 21H
 	
-	mov ah,2
-	mov dx,word ptr point
-	int 10h 
-	mov bh,0    
+	MOV AH,2
+	MOV DX,word PTR point
+	INT 10H 
+	MOV BH,0    
 	
-	call UARTConf  	
+	CALL UARTConf  	
 send?Receive?:
-	mov dx , 3FDH    ; Line Status Register
-	in al , dx 
-  	test al , 1
+	MOV DX , 3FDH    ; Line StAtus Register
+	in AL , DX 
+  	test AL , 1
   	JZ next
-	call Receive
-	mov al,1 
-	mov dx , 3FDH 
-        out dx,al   
+	CALL Receive
+	;MOV AL,1 
+	;MOV DX , 3FDH 
+    ;OUT DX,AL   
 next:
-	mov ah,1
-	int 16h
-        jz send?Receive?
-        mov ah,0
-	int 16h
-	call Send
-	jmp send?Receive?
+	MOV AH,1
+	INT 16H
+    JZ send?Receive?
+    MOV AH,0
+	INT 16H
+	CALL Send
+	JMP send?Receive?
 
 exit1:
-MOV SelectMode, 0
- 	;mov     AH, 4Ch         ;Exit the program
- 	;INT     21h
-	RET
 	JMP FAR PTR MAIN_MENU
+	RET	
 Chat	ENDP
 
-UARTConf Proc near
+UARTConf PROC NEAR
 
-	mov dx,3fbh 			; Line Control Register
-        mov al,10000000b		;Set Divisor Latch Access Bit
-    	out dx,al			;Out it
+	MOV DX,3FBH 			; Line ControL Register
+    MOV AL,10000000b		;Set Divisor LAtCH ACCess Bit
+    OUT DX,AL				;OUT it
     
-        mov dx,3f8h			
-    	mov al,0ch			
-    	out dx,al
+    MOV DX,3F8H			
+    MOV AL,0CH			
+    OUT DX,AL
     
-    	mov dx,3f9h
-    	mov al,00h
-    	out dx,al
+    MOV DX,3F9H
+    MOV AL,00H
+    OUT DX,AL
 
-    	mov dx,3fbh
-    	mov al,00011011b
-    	out dx,al
-	ret
-UARTConf endp
+    MOV DX,3FBH
+    MOV AL,00011011b
+    OUT DX,AL
+	RET
+UARTConf ENDP
 
-Send Proc near 
+Send PROC NEAR 
 	
-   	mov Value_S,al
+   	MOV Value_S,AL
 	
 	
-	mov ah,4Fh
-	cmp byte ptr point,ah
-	jb snot_end_line
+	MOV AH,4FH
+	CMP byte PTR point,AH
+	jb snot_end_Line
 
-	mov ah,18h
-	cmp byte ptr point[1],ah
-	jb scheck_enter1
+	MOV AH,18H
+	CMP byte PTR point[1],AH
+	jb S_Check_enter1
 
-	mov word ptr point,1800h
-	mov ah,2
-	mov dx,word ptr point
-	int 10h 
-	mov bl,0
-	mov ax,0601h
-	mov bh,04Fh
-	mov cx,0D00h
-	mov dx,184fh
-	int 10h
-	jmp sDisplay
+	MOV word PTR point,1800H
+	MOV AH,2
+	MOV DX,word PTR point
+	INT 10H 
+	MOV BL,0
+	MOV AX,0601H
+	MOV BH,04FH
+	MOV CX,0D00H
+	MOV DX,184FH
+	INT 10H
+	JMP S_Display
 
-snot_end_line:
+snot_end_Line:
 
-	mov ah,18h
-	cmp byte ptr point[1],ah
-	jb scheck_enter1
-	cmp al,0Dh
-	jne sDisplay
-	mov word ptr point,1800h
-	mov bl,0
-	mov ax,0601h
-	mov bh,04Fh
-	mov cx,0D00h
-	mov dx,184fh
-	int 10h
-	jmp sDisplay
+	MOV AH,18H
+	CMP byte PTR point[1],AH
+	jb S_Check_enter1
+	CMP AL,0DH
+	jne S_Display
+	MOV word PTR point,1800H
+	MOV BL,0
+	MOV AX,0601H
+	MOV BH,04FH
+	MOV CX,0D00H
+	MOV DX,184FH
+	INT 10H
+	JMP S_Display
 
-scheck_enter1:
-	cmp al , 0dh
-	jne sDisplay
-	mov byte ptr point,00h	
-	inc byte ptr point[1]	
-	jmp sDisplay
+S_Check_enter1:
+	CMP AL , 0DH
+	jne S_Display
+	MOV byte PTR point,00H	
+	inC byte PTR point[1]	
+	JMP S_Display
 	
-sDisplay:
-	mov ah , 2
-	mov dx,word ptr point
-	int 10h 
+S_Display:
+	MOV AH , 2
+	MOV DX,word PTR point
+	INT 10H 
 	
-	cmp al , 08h
-	jnz S_notBackSpace
+	CMP AL , 08H
+	JNZ S_NotBackspace
 	
 
-	mov ah , 2 
-	mov dl , VALUE_S
-	int 21h
+	MOV AH , 2 
+	MOV DL , Value_S
+	INT 21H
 
-	mov ah , 2
-	mov dl , 20h
-	int 21h
+	MOV AH , 2
+	MOV DL , 20H
+	INT 21H
 
-S_notBackSpace:
+S_NotBackspace:
 	
-	mov ah , 3h 
-	mov bh , 0h 
-	int 10h
-	mov word ptr point,dx
+	
 
-	mov dx ,3FDH		; Line Status Register
+	MOV DX ,3FDH		; Line StAtus Register
 	AGAIN1:
-  	In al,dx 			;Read Line Status
-	test al , 00100000b
-	jz AGAIN1
+  	In AL,DX 			;ReAd Line StAtus
+	test AL , 00100000b
+	JZ AGAIN1
 
-	mov dx , 3F8H		; Transmit data register
-    mov  al,Value_S
-  	out dx , al 
+	MOV DX , 3F8H		; TrAnsmit dAtA register
+    MOV  AL,Value_S
+  	OUT DX , AL 
 	
-	mov  al,Value_S
-	cmp al,27
-    jnz return
-    jmp far ptr MAIN_MENU
+	MOV  AL,Value_S
+	CMP AL,27
+    JNZ Return
+    JMP FAR PTR exit1
     
-return:
-	mov dl , VALUE_S
-	mov ah ,2 
-  	int 21h
-	ret
-Send    endp
+Return:
+	MOV DL , Value_S
+	MOV AH ,2 
+  	INT 21H
 
-Receive proc near 
+  	MOV AH , 3H 
+	MOV BH , 0H 
+	INT 10H
+	MOV word PTR point,DX
 
-	mov dx , 03F8H
-	in al , dx 
-	mov VALUE_R , al
-	mov al, VALUE_R
-	cmp al,27
-    jnz rec
-    jmp far ptr MAIN_MENU
-rec:	
-	mov ah,4Fh
-	cmp byte ptr point2,ah
-	jb not_end_line
+	RET
+Send    ENDP
 
-	mov ah,0bh
-	cmp byte ptr point2[1],ah
-	jb check_enter1
+Receive PROC NEAR 
 
-	mov word ptr point2,0B00h
-	mov ah,2
-	mov dx,word ptr point2
-	int 10h 
+	MOV DX , 03F8H
+	in AL , DX 
+	MOV Value_R , AL
+	MOV AL, Value_R
+	CMP AL,27
+    JNZ REC
+    JMP FAR PTR exit1
+REC:	
+	MOV AH,4FH
+	CMP byte PTR point2,AH
+	jb not_end_Line
 
-	mov bl,0
-	mov ax,0601h
-	mov bh,01Fh
-	mov cx,0100h
-	mov dx,0B4fh
-	int 10h
-	jmp Display
+	MOV AH,0BH
+	CMP byte PTR point2[1],AH
+	jb Check_enter1
 
-not_end_line:
+	MOV word PTR point2,0B00H
+	MOV AH,2
+	MOV DX,word PTR point2
+	INT 10H 
 
-	mov ah,0bh
-	cmp byte ptr point2[1],ah
-	jb check_enter1
-	cmp al,0Dh
+	MOV BL,0
+	MOV AX,0601H
+	MOV BH,01FH
+	MOV CX,0100H
+	MOV DX,0B4FH
+	INT 10H
+	JMP Display
+
+not_end_Line:
+
+	MOV AH,0BH
+	CMP byte PTR point2[1],AH
+	jb Check_enter1
+	CMP AL,0DH
 	jne Display
-	mov word ptr point2,0B00h
-	mov bl,0
-	mov ax,0601h
-	mov bh,01Fh
-	mov cx,0100h
-	mov dx,0B4fh
-	int 10h
-	jmp Display
+	MOV word PTR point2,0B00H
+	MOV BL,0
+	MOV AX,0601H
+	MOV BH,01FH
+	MOV CX,0100H
+	MOV DX,0B4FH
+	INT 10H
+	JMP Display
 
-check_enter1:
-	cmp al,0Dh
+Check_enter1:
+	CMP AL,0DH
 	jne Display
-	mov byte ptr point2,00h	
-	inc byte ptr point2[1]	
-	jmp Display
+	MOV byte PTR point2,00H	
+	inC byte PTR point2[1]	
+	JMP Display
 	
 Display:
-	mov ah,2
-	mov dx,word ptr point2
-	int 10h 
+	MOV AH,2
+	MOV DX,word PTR point2
+	INT 10H 
 	
-	cmp al,08h
-	jnz notBackSpace
+	CMP AL,08H
+	JNZ NotBackspace
 
-	mov ah,2
-	mov dl, VALUE_R
-	int 21h	
-	mov ah,2
-	mov dl,20h
-	int 21h
+	MOV AH,2
+	MOV DL , Value_R
+	INT 21H	
+	MOV AH,2
+	MOV DL ,20H
+	INT 21H
 	
 
-notBackSpace:
+NotBackspace:
 	
-    mov dl , VALUE_R
-	mov ah ,2 
-  	int 21h
+    MOV DL , Value_R
+	MOV AH ,2 
+  	INT 21H
 	
-	mov ah,3h 
-	mov bh,0h 
-	int 10h
-	mov word ptr point2,dx
-	ret
+	MOV AH,3H 
+	MOV BH,0H 
+	INT 10H
+	MOV word PTR point2,DX
+	RET
 
-Receive endp
+Receive ENDP
