@@ -101,8 +101,58 @@ cont:
         JNE     drawLoop                                                               
         
         call    CloseFile                                                     
-        call    CloseFile                                                     
+        call    CloseFile 
+
+PLAYERS_NAMES: 
+        MOV     DL, 31 ;X               
+        MOV     DH, 30 ;Y                                       
+        MOV     AH, 2
+        INT     10H
+        mov     ah, 9
+        mov     dx, offset playername
+        int     21h
+
+        mov     ah, 2
+        mov     dl, '1'
+        int     21h 
+        mov     ah, 9
+        mov     dx, offset playername[7]
+        int     21h 
         
+        mov     ah, 0AH
+        mov     dx, offset P1Name
+        int     21h 
+        
+        
+        MOV     DL, 81 ;X               
+        MOV     DH, 30 ;Y                                       
+        MOV     AH, 2
+        INT     10H
+        mov     ah, 9
+        mov     dx, offset playername
+        int     21h
+        mov     ah, 2
+        mov     dl, '2'
+        int     21h 
+        mov     ah, 9
+        mov     dx, offset playername[7]
+        int     21h 
+        
+        
+        mov     ah, 0AH
+        mov     dx, offset P2Name
+        int     21h     
+
+
+        MOV     CH, 0
+        MOV     AL, 0
+        MOV     BX, 0000H
+        MOV     BP, OFFSET SB_space
+        MOV     AH, 13H   
+        MOV     CL, 127 
+        MOV     DX, 1E00H
+        INT     10H  
+               
         MOV     CH, 0DH                                                        
         MOV     CL, 0FH                                                        
         
@@ -155,8 +205,23 @@ WriteQuit:
         INC     DI                                                             
         CMP     DI, 6+4                                                         
         JL      WriteQuit                                                       
-        
-        
+ WriteChat:
+        PUSH    CX
+        PUSH    BX
+        PUSH    DX
+        PUSH    AX
+        MOV     CH, 0
+        MOV     AL, 0
+        MOV     BX, 000DH
+        MOV     BP, OFFSET chatting+1
+        MOV     AH, 13H   
+        MOV     CL, BYTE PTR chatting
+        MOV     DX, 2131H
+        INT     10H
+        POP     AX
+        POP     DX
+        POP     BX
+        POP     CX
 WaitTillChoose:                                                    
         MOV     AH, 0                                                           
         INT     16h                                                            
@@ -164,12 +229,18 @@ WaitTillChoose:
         JE      CHANGECHOSEN                                                    
         CMP     AH, 4DH                                                         
         JE      CHANGECHOSEN                                                    
-        
         CMP     AH, 1CH                                                         
         JE      Chosen                                                          
-        
-        JMP     WaitTillChoose                                                 
-        
+        CMP     AH, 3BH
+        JE      ChatMode
+        JMP     WaitTillChoose 
+
+ChatMode:mov    AX, 3h          ;Return to text mode
+         INT    10h
+         MOV    SelectMode, 1     
+         RET    
+
+                
 Chosen:                                                            
         CMP     CL, 0DH                                                        
         JE      StartGame                                                       
@@ -179,7 +250,7 @@ Chosen:
         INT     21H 
 
 StartGame:
-        
+        MOV    SelectMode, 0
         MOV     CH, 0
         MOV     AL, 0
         MOV     BX, 0000H
@@ -189,6 +260,9 @@ StartGame:
         MOV     DX, 1E1DH
         INT     10H
         
+        MOV     DX, 2100H
+        INT     10h
+
         MOV     CH, 0
         MOV     AL, 0
         MOV     BX, 000DH
@@ -220,7 +294,7 @@ IS_CHOSEN:
              
         MOV     SI, OFFSET lv1Filename
         MOV     WORD PTR lvChosen, SI
-        jmp     PLAYERS_NAMES
+        RET
 IS_F2:        
         CMP     AH, 3CH                                                         
         jNE     IS_CHOSEN
@@ -228,61 +302,10 @@ IS_F2:
         MOV     SI, OFFSET lv2Filename
         MOV     WORD PTR lvChosen, SI
         
-PLAYERS_NAMES:  
+        
+        
 
-        MOV     CH, 0
-        MOV     AL, 0
-        MOV     BX, 0000H
-        MOV     BP, OFFSET SB_space
-        MOV     AH, 13H   
-        MOV     CL, 20 
-        MOV     DX, 2337H
-        INT     10H  
-               
-        MOV     DX, 2539H
-        INT     10H  
-       
-        MOV     DX, 2639H
-        INT     10H  
-        
-        
-        MOV     DL, 31 ;X               
-        MOV     DH, 30 ;Y                                       
-        MOV     AH, 2
-        INT     10H
-        mov     ah, 9
-        mov     dx, offset playername
-        int     21h
-        mov     ah, 2
-        mov     dl, '1'
-        int     21h 
-        mov     ah, 9
-        mov     dx, offset playername[7]
-        int     21h 
-        
-        mov     ah, 0AH
-        mov     dx, offset P1Name
-        int     21h 
-        
-        
-        MOV     DL, 81 ;X               
-        MOV     DH, 30 ;Y                                       
-        MOV     AH, 2
-        INT     10H
-        mov     ah, 9
-        mov     dx, offset playername
-        int     21h
-        mov     ah, 2
-        mov     dl, '2'
-        int     21h 
-        mov     ah, 9
-        mov     dx, offset playername[7]
-        int     21h 
-        
-        
-        mov     ah, 0AH
-        mov     dx, offset P2Name
-        int     21h 
+
         RET
 Haunted_MainMenu        ENDP
         

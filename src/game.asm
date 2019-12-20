@@ -16,6 +16,14 @@ include serial.asm
         ;; SR_ReceiveByte
 include start.asm
         ;; InitGame
+
+;;; ============================================================================================
+;;; Chatting 
+include chat.asm
+        ;;Chat
+        ;;UARTConf
+        ;;Send
+        ;;Receive
         
 ;;; ============================================================================================
 ;;; Main menu and Game utilities
@@ -83,6 +91,7 @@ MAIN    PROC    FAR
         mov     DS, AX
         mov     ES, AX
 
+        
         ;; Teleport sprite
         LEA     DI, Sprite_Teleport
         LEA     SI, tpFilename
@@ -97,13 +106,19 @@ MAIN    PROC    FAR
 
         CALL    InitSerial
 MAIN_MENU:      
+        
         ;; Clear the screen
         mov     AX, 4F02H
         mov     BX, 0105H
         INT     10H   
         CALL    Haunted_MainMenu
-
+        MOV     ah, 1
+        CMP     SelectMode, 1
+        JNE     LoadMap
+        CALL    Chat
+        JMP     MAIN_MENU
         ;; Load map
+LoadMap:
         LEA     DI, levelMap
         MOV     SI, Word Ptr lvChosen
         MOV     CX, GRID_COLUMNS*GRID_ROWS 

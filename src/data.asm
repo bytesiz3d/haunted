@@ -13,11 +13,17 @@ IG_counter                      DW      ?
 IG_inputData                    DW      5 dup(?)
 frameMove                       DB      ?
 
+;;;; Chatting variables
+Value_S							db ?
+Value_R 						db ?
+point    						dw 0D00h
+point2   						dw 0100h
+
 ;;; Scoreboard variables
 SB_string                       DB      5 dup('$') 
 SB_ext                          DB      "'s score: " 
 SB_line                         DB      128 dup('_')  ;for score & notification
-SB_space                        DB      128(32)       ;for score & notification
+SB_space                        DB      128(32),'$'       ;for score & notification
 
 ;;; Notification bar
 NB_msg1                         DB      26, "Press ENTER to start game."
@@ -40,15 +46,18 @@ HauntedWidth                    EQU     320
 HauntedHeight                   EQU     89
 HauntedData                     DB      HauntedWidth*HauntedHeight dup(0)
 fileHandle                      DW      ?
-p1Name                          DB      20, ?, 20 dup("$")
-p2Name                          DB      20, ?, 20 dup("$")
+p1Name                          DB      20, ?, 22 dup("$")
+p2Name                          DB      20, ?, 22 dup("$")
+;p1Name                          DB      "Ahmed:$"
+;p2Name                          DB      "Ali:$"
 newGame                         DB      0, 0, 0, "NEW GAME", 0, 0, 0
-quit                            DB      0, 0, 0, "QUIT", 0, 0, 0                 
+quit                            DB      0, 0, 0, "QUIT", 0, 0, 0
+chatting 						DB 		30,"For Chatting Mode Press ==> F1"			
 playerName                      DB      "Player$", " Name: $"                 
 choose_msg                      DB      18, "Choose Your level:"
 level1_msg                      DB      14, "Level 1 ==> F1"   
 level2_msg                      DB      14, "Level 2 ==> F2"             
-                  
+SelectMode						DB 		0                  
 ;; DrawSprite variables
 Square_X                        LABEL   WORD    ;DrawSpriteXY
 Square_C                        DB      ?
