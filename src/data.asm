@@ -3,14 +3,27 @@ HauntedFilename                 DB      "../bin/haunted", 0
 tpFilename                      DB      "../bin/teleport", 0
 x2Filename                      DB      "../bin/x2speed", 0
 lv1Filename                     DB      "../bin/lv1", 0
-lv2Filename             	    DB      "../bin/lv2", 0              
-lvChosen                	    DW      ?   
+lv2Filename                     DB      "../bin/lv2", 0              
+lvChosen                        DW      ?   
+
+;;; Serial communication variables
+localPlayer                     DB      ?
+otherPlayer                     DB      ?
+IG_counter                      DW      ?
+IG_inputData                    DW      5 dup(?)
+frameMove                       DB      ?
+
+;;;; Chatting variables
+Value_S							db ?
+Value_R 						db ?
+point    						dw 0D00h
+point2   						dw 0100h
 
 ;;; Scoreboard variables
 SB_string                       DB      5 dup('$') 
 SB_ext                          DB      "'s score: " 
 SB_line                         DB      128 dup('_')  ;for score & notification
-SB_space                        DB      128(32)       ;for score & notification
+SB_space                        DB      128(32),'$'       ;for score & notification
 
 ;;; Notification bar
 NB_msg1                         DB      26, "Press ENTER to start game."
@@ -33,15 +46,24 @@ HauntedWidth                    EQU     320
 HauntedHeight                   EQU     89
 HauntedData                     DB      HauntedWidth*HauntedHeight dup(0)
 fileHandle                      DW      ?
-p1Name                          DB      20, ?, 20 dup("$")
-p2Name                          DB      20, ?, 20 dup("$")
-newGame                         DB      0, 0, 0, "NEW GAME", 0, 0, 0
-quit                            DB      0, 0, 0, "QUIT", 0, 0, 0                 
-playerName                      DB      "Player$", " Name: $"                 
+p1Name                          DB      20, ?, 22 dup("$")
+p2Name                          DB      20, ?, 22 dup("$")
+;p1Name                          DB      "Ahmed:$"
+;p2Name                          DB      "Ali:$"
+RcvGInviteNotification          DB      47, " sent you a game invitation, to accept press F2"
+RcvCInviteNotification          DB      47, " sent you a chat invitation, to accept press F1"
+SentGInviteNotification         DB      30, "You sent a game invitation to "
+SentCInviteNotification         DB      30, "You sent a chat invitation to "
+connectingScreen		        DB      30, "Connecting, Please wait......."
+newGame                         DB      30, "To start haunted game press F2"
+chatting 						DB 		26, "To start chatting press F1"			
+quit                            DB      28, "To end the program press ESC"
+
+playerName                      DB      "Player", " Name: $"                 
 choose_msg                      DB      18, "Choose Your level:"
 level1_msg                      DB      14, "Level 1 ==> F1"   
 level2_msg                      DB      14, "Level 2 ==> F2"             
-                  
+SelectMode						DB 		0                  
 ;; DrawSprite variables
 Square_X                        LABEL   WORD    ;DrawSpriteXY
 Square_C                        DB      ?
@@ -91,7 +113,8 @@ Ghost_00                        DW      ?
 Ghost_10                        DW      ?
 
 ;;; Ghost controls
-ghostDelay                      EQU     10
+ghostDelay                      EQU     16
+;; ghostDelay                      EQU     0FFh
 ghostDamage                     EQU     10
 ghostCounter                    DB      ghostDelay
 
@@ -103,10 +126,12 @@ Score_TARGET                    EQU     48
 
 ;;; Level map and Game State
 include map.asm
-totalFrameCount                 DW      30 * 60
+;; totalFrameCount                 DW      30 * 60
+totalFrameCount                 DW      0FFFFh
 mapValue                        DB      ?
 
-freezeFrameCount                EQU     60      
+freezeFrameCount                EQU     45      
+freezeCounter_BASE              LABEL   BYTE
 freezeCounter_Player0           DB      0
 freezeCounter_Player1           DB      0
 
@@ -114,9 +139,12 @@ x2SpeedFrameCount               EQU     255
 x2SpeedCounter_Ghost0           DB      0
 x2SpeedCounter_Ghost1           DB      0
 
+teleportIndicator               DB	2	; = 2 no teleport , = 0 player 0 hit teleport, = 1 player 1 hit teleport 
 ;x2SpeedIndicator               DB	2	;  = 2 no doubleGS , = 0 player 0 hit doubleGS, = 1 player 1 hit doubleGS 
 currentGhost                    DB	0
 
-teleportIndicator               DB	2	; = 2 no teleport , = 0 player 0 hit teleport, = 1 player 1 hit teleport 
+sendG							DB	0
+rcvG							DB	0
 
-
+sendC							DB	0
+rcvC							DB	0

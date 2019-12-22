@@ -9,6 +9,23 @@ include data.asm
 
 ;;; ============================================================================================
         .CODE
+;;; Serial communication 
+include serial.asm
+        ;; InitSerial
+        ;; SR_SendByte
+        ;; SR_ReceiveByte
+include start.asm
+        ;; InitGame
+
+;;; ============================================================================================
+;;; Chatting 
+include chat.asm
+        ;;Chat
+        ;;UARTConf
+        ;;Send
+        ;;Receive
+        
+;;; ============================================================================================
 ;;; Main menu and Game utilities
 include menu.asm
         ;; Haunted_MainMenu
@@ -74,11 +91,6 @@ MAIN    PROC    FAR
         mov     DS, AX
         mov     ES, AX
 
-        ;; Initialize the seed
-        ;; Get system clock tick count IN DX
-        MOV     AX, 0
-        INT     1Ah
-        mov     rrc_seed, DX
         
         ;; Teleport sprite
         LEA     DI, Sprite_Teleport
@@ -92,35 +104,74 @@ MAIN    PROC    FAR
         MOV     CX, SPRITE_SIZE
         CALL    LoadBuffer
 
+
 MAIN_MENU:      
+        
         ;; Clear the screen
         mov     AX, 4F02H
         mov     BX, 0105H
         INT     10H   
         CALL    Haunted_MainMenu
-
+        MOV     ah, 1
+        CMP     SelectMode, 1
+        JNE     LoadMap
+        CALL    Chat
+        JMP     MAIN_MENU
         ;; Load map
+LoadMap:
         LEA     DI, levelMap
         MOV     SI, Word Ptr lvChosen
         MOV     CX, GRID_COLUMNS*GRID_ROWS 
         CALL    LoadBuffer
 
         ;; New Game
-        CALL    ResetGame
+        CALL    InitGame
         CALL    DrawMap         
         mDrawEntities
         
+        MOV	CH, 0
+        MOV     AL, 0
+        MOV     BX, 000FH 
+        MOV     AH, 13H   
+        MOV     CL, 80H 
+        MOV     BP, OFFSET SB_line   
+        MOV     DX, 2E00h
+        INT     10h 
+	
         MOV	DI, OFFSET NB_msg1+1
         MOV	CL, BYTE PTR NB_msg1
-        MOV	CH, 0
         MOV	SI, CX
         CALL	NotificationBar
         
 _ENTER_GAME:     
+        CALL    SR_ReceiveByte
+        CMP     BL, 1Ch         ;Enter
+        JE      _ENTER_GAME_RECEIVED
+
+        mov     AH, 1
+        int     16h
+        JZ      _ENTER_GAME
+
         mov     AH, 0
         INT     16h
-        CMP     AH, 1Ch
-        JNZ     _ENTER_GAME
+
+        CMP     AH, 1Ch         ;Enter
+        JNE     _ENTER_GAME
+
+        ;; Send ENTER
+        MOV     BL, 1Ch
+        CALL    SR_SendByte
+
+_ENTER_GAME_WAIT_ECHO:
+        CALL    SR_ReceiveByte
+        CMP     BL, 1Ch
+        JNE     _ENTER_GAME_WAIT_ECHO
+
+        JMP     _ENTER_GAME_FINISHED
+
+_ENTER_GAME_RECEIVED:
+        CALL    SR_SendByte
+_ENTER_GAME_FINISHED:
         
         MOV     DI, OFFSET NB_msg2+1
         MOV     CL, BYTE PTR NB_msg2
@@ -156,9 +207,9 @@ MOVE_GHOSTS_FRAME_START:
 
 ;;; ============================================================================================
 FRAME_START:
-        ;; 33 ms delay (CX:DX in microseconds)
-        mov     CX, 0h
-        mov     DX, 8235h
+        ;; 66 ms delay (CX:DX in microseconds)
+        mov     CX, 0001h
+        mov     DX, 046Ah
         mov     AH, 86h
         INT     15h
 
@@ -166,6 +217,8 @@ FRAME_START:
         CALL    SpawnCoin
 
         DEC     totalFrameCount
+        DEC     totalFrameCount
+        
         JNZ     HIT_GHOST?
         JMP     GAME_OVER
 
@@ -184,35 +237,51 @@ HIT_GHOST?:
 
 ;;; ============================================================================================
 READ_INPUT:
+        ;; Check if a character has been received
+        call    SR_ReceiveByte
+        cmp     BL, 0FFh        ;Error code
+        JE      LOCAL_MOVED?
+
+        MOV     frameMove, BL   ;Store move
+        MOV     AH, BL          
+        JMP     SET_OTHER_PLAYER        
+
+LOCAL_MOVED?:
         ;; Read input, jump back if no input was received
         mov     AH, 1
         INT     16H
         JNZ     MOVED?                 
         
         JMP     MOVE_GHOSTS_FRAME_START
+
 MOVED?:
         mov     AH, 0
         INT     16h             ;Clear the key queue, keep the value in AH
 
-        CMP     AH, 01H
-        JNZ     SET_PLAYER
+        ;; Send the keystroke
+        mov     frameMove, AH
+        mov     BL, frameMove
+        CALL    SR_SendByte
+        mov     AH, frameMove
+
+        CMP     AH, 01h         ;ESC
+        JNZ     SET_LOCAL_PLAYER
         JMP     MAIN_MENU 
 
-SET_PLAYER:     
-        CMP     AH, 40H
-        JB      SET_PLAYER_0
-        JMP     SET_PLAYER_1
-
-SET_PLAYER_0:
-        MOV     currentPlayer, 0
-        CMP     freezeCounter_Player0, 0           ;Check if player0 has been freezed
+SET_LOCAL_PLAYER:     
+        MOV     BL, localPlayer
+        MOV     byte ptr currentPlayer, BL
+        MOV     BH, 0
+        CMP     freezeCounter_BASE[BX], 0           ;Check if the local player has been freezed
         JZ      GET_NEW_POS
 
         JMP     MOVE_GHOSTS_FRAME_START
 
-SET_PLAYER_1:
-        MOV     currentPlayer, 1
-        CMP     freezeCounter_Player1, 0           ;Check if player1 has been freezed
+SET_OTHER_PLAYER:
+        MOV     BL, otherPlayer
+        MOV     byte ptr currentPlayer, BL
+        MOV     BH, 0
+        CMP     freezeCounter_BASE[BX], 0           ;Check if the other player has been freezed
         JZ      GET_NEW_POS
 
         JMP     MOVE_GHOSTS_FRAME_START
@@ -233,24 +302,16 @@ GET_NEW_POS:
         mov     DI, Player_Base[SI]
         mov     newPosition, DI
 
-        CMP     AH, 48H
-        JE      IS_UP
-        CMP     AH, 11h         ;W
+        CMP     frameMove, 48H
         JE      IS_UP
 
-        CMP     AH, 50H
-        JE      IS_DOWN
-        CMP     AH, 1Fh         ;S
+        CMP     frameMove, 50H
         JE      IS_DOWN
 
-        CMP     AH, 4DH
-        JE      IS_RIGHT
-        CMP     AH, 20h         ;D
+        CMP     frameMove, 4DH
         JE      IS_RIGHT
         
-        CMP     AH, 4BH
-        JE      IS_LEFT
-        CMP     AH, 1Eh         ;A
+        CMP     frameMove, 4BH
         JE      IS_LEFT
 
         JMP     MOVE_GHOSTS_FRAME_START
@@ -373,25 +434,25 @@ CLEAR_PIECE:
 
 
 MOVE_PLAYER:    
+        mov     SI, currentPlayer
+        SHL     SI, 1                   ;Word
+        mov     AX, Player_Base[SI]     ;Erase the player and redraw the cell
+        CALL    RCtoMapSprite
+        CALL    DrawSprite
+
+        mov     SI, newPosition         ;Update position
+        mov     DI, currentPlayer
+        SHL     DI, 1                   ;Word
+        mov     Player_Base[DI], SI
+
         ;; mov     SI, currentPlayer
         ;; SHL     SI, 1                   ;Word   
-        ;; mov     AX, Player_Base[SI]     ;Erase the player and redraw the cell
-        ;; CALL    RCtoMapSprite
-        ;; CALL    DrawSprite
-
-        ;; mov     SI, newPosition         ;Update position
-        ;; mov     DI, currentPlayer 
-        ;; SHL     DI, 1                   ;Word   
-        ;; mov     Player_Base[DI], SI    
-
-        mov     SI, currentPlayer
-        SHL     SI, 1                   ;Word   
-        mov     BX, Player_Base[SI]     ;Previous position
-        mov     AX, newPosition
-        CALL    AnimatePlayer
+        ;; mov     BX, Player_Base[SI]     ;Previous position
+        ;; mov     AX, newPosition
+        ;; CALL    AnimatePlayer
         
-	CALL	Teleport
-	JMP     MOVE_GHOSTS_FRAME_START
+        CALL    Teleport
+        JMP     MOVE_GHOSTS_FRAME_START
 
 ;;; ============================================================================================
 GAME_OVER:
@@ -400,13 +461,6 @@ GAME_OVER:
 	MOV	CH, 0
 	MOV	SI, CX
 	CALL	NotificationBar
-
-	
-       ; mov     AX, 3h          ;Return to text mode
-       ; INT     10h
-
-       ; mov     AH, 9h
-       ; INT     21h
 
         mov     AH, 0
         INT     16h

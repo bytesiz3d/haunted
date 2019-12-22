@@ -1,3 +1,4 @@
+;;; ====================================================================
         ;; in AX: Player position       
         ;; in DI: Ghost position offset
         ;; in BX: Ghost sprite offset
@@ -104,19 +105,22 @@ RANDOMIZE:
         add     byte ptr mg_Step0, AL
         add     byte ptr mg_Step1[1], AH
         
-        ;; Get system clock tick count
-        ;; Exchange the two moves n times (n = lower byte of clock tick count)
-        MOV     AX, 0
-        INT     1Ah
-        MOV     CL, DL
-RANDOMIZE_LOOP:
+        ;; Get the low byte of a randomly generated RC
+        MOV     AX, rrc_seed
+
+        AND     AL, 01h
+        JNZ     RANDOM_ODD_MOVE
+        JMP     RANDOM_EVEN_MOVE
+
+RANDOM_ODD_MOVE:
         MOV     AX, mg_Step0
-        XCHG    mg_Step1, AX
-        XCHG    mg_Step0, AX
-        LOOP    RANDOMIZE_LOOP
-        ;; Set the desired move
-        mov     AX, mg_Step0
-        mov     mg_nextStep, AX
+        MOV     mg_nextStep, AX
+        JMP     SET_STEP
+        
+RANDOM_EVEN_MOVE:
+        MOV     AX, mg_Step1
+        MOV     mg_nextStep, AX
+        JMP     SET_STEP
 
 SET_STEP:
         ;; Erase ghost, redraw cell
@@ -135,9 +139,8 @@ SET_STEP:
         ;; Draw ghost
         mov     SI, mg_ghostSpriteOffset
         CALL    DrawSprite
-				
-		
-	RET
+        
+        RET
 MoveGhost       ENDP
 
 ;;; ====================================================================
